@@ -26,6 +26,15 @@ buradaki sıra ve kararlar uygulanır. Kaynaklar: Halil'in Pillar Kural Defteri 
 - **Kararı asistan verir:** Kelime alakası, bölümün açılıp açılmayacağı, alanın
   boş kalıp kalmayacağı arama hacmine bakılarak asistan tarafından verilir.
   Şablonda her alanı doldurmak zorunlu değil.
+- **ESKİ FORMAT YASAK (1 Ekim 2026, Halil):** Aşağıdakiler hiçbir Gezi sayfasına yazılmaz;
+  görülürse yeni formata çevrilir:
+  - yer ve ipucu kartı yerine düz `<ul class="gbc-check">` listesi
+  - "€/gece" bütçe; `gz-chef-note gz-not--tasarruf` tek bütçe kutusu
+  - `card_safe_list` (acil numara bölümü), `card_trans_list` (şehir içi ulaşım)
+  - tek sayfa modunda dolu `rel_*` (kutular 3'e iner, geniş düzen kapanır)
+  - `trip_links`'e post ID ya da ID dizisi (satır biçimi `Ad | URL | not | aff_id`)
+  - "2-3 gün", "4-5 gün" gibi rozetle çelişen rota; videoda olmayan yer kartı
+  - Hızlı Plan'da 5 adım ya da uçaksız plan
 - **Doğrulanmamış bilgi yazılmaz:** Rakam resmî kaynaktan ya da bizim
   fişimizden gelir, yanında kaynak ve son kontrol tarihi durur.
 
@@ -199,6 +208,8 @@ BOŞSA (varsayılan):
   DEĞİLSE
       → geniş düzen AÇIK (Sorrento, Strazburg tek sayfa modu)
 ```
+- Tek sayfa modunda `layout_genis` = "1" metası da yazılır (gbc-core kılavuzu:
+  bu olmadan Gezi sayfası yayına çıkmaz); böylece `rel_*` kazara dolsa bile geniş düzen kapanmaz.
 - Tek sayfa modundaki bir rehberde `rel_*` doluysa hem kartlar 3'e kesilir hem
   alt bölümlerin tam genişliği gider. "Kutular ve geniş alan kayboldu" şikâyetinde
   ilk bakılacak yer burası.
@@ -288,7 +299,7 @@ EĞER araçla gezilecek köy, kale ya da bölge varsa
 - Yalnız videodaki yerler, video sırasıyla.
 - İskelet: `gz-places-wrapper` > `gz-plan-baslik` (`gz-plan-no` tek kelime: Merkez, Deniz…) > numaralı `gz-place-card`.
 - Kartta sırasıyla: görsel, `gz-inner-title` + `<small>alt başlık</small>`, `gz-inner-tags` (önce video çipi, sonra 2–3 `<b>` etiket: ücret, süre, yer), 2–4 kısa paragraf.
-- Biletli durak → kartın sonunda `[gbc_aff id=gyg_{şehir}_{yer}]`. Otel adı geçerse doğrudan o otelin sayfası.
+- Biletli durak → kartın sonunda `<p class="gz-kart-aff">[gbc_aff id=gyg_{şehir}_{yer}]…[/gbc_aff]</p>`. Otel adı geçerse doğrudan o otelin sayfası.
 - İkinci grup (deniz, sahil) `gz-mavi` rengiyle; numaralar gruplar boyunca devam eder.
 - `card_places_tag`: Google My Maps iframe (varsa). `place_location`: basit harita iframe'i.
 
