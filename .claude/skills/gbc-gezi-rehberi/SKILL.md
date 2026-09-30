@@ -34,6 +34,8 @@ Her şey bu tek dosyada:
   metalar (`gz_yakin_*`, `gun_cevap`, `route_ozet_*`, `h2_event`, şema) royal
   `wp_update_post_meta` ile yazılır.
 - Kısa bağlantılar (pxf.io, tp.media, tpx.li) açılmaz, tahmin edilmez.
+- Her rehbere `gz_api_kilit` = 1 metasını koy (editör tuzağına karşı teknik kilit,
+  Ek A 5.14). Editörden eski sekmeyle kayıt iki kez sayfayı sıfırladı.
 - Her yazımdan sonra yazdığın alanları scratchpad'e JSON olarak da kaydet
   (editör tuzağına karşı geri yükleme kaydı, bkz. bölüm 9).
 
@@ -722,6 +724,10 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
   kaydetmeden önce sayfa yenilenir (F5). Asistan, sayfa "bozuldu" denince önce
   `wp_history_list` ve `modified` saatine bakar, sonra kendi yazım kaydından
   alanları geri yükler.
+  **Kilit:** Claude'un yazdığı her rehbere `gz_api_kilit` = 1 metası konur. WPCode'daki
+  "GBC · API kilidi" parçası (`wpcode/gbc-api-kilidi.php`) bu yazılarda editör
+  formundan gelen ACF değerlerini kaydetmez; başlık, etiket ve Rank Math kaydedilir.
+  Editörden ACF düzenlemek için meta 0 yapılır.
 
 #### A5.15 Etiketler
 - Sıra: Ülke · Gezi · Noel Pazarları (varsa) · Vizeli/Vizesiz · VLOG · {ŞehirAdı}.
@@ -816,6 +822,11 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
 ## Ek B. Öğrenilenler (en yeni en üstte)
 
 Biçim: **Tarih · Sayfa · Ne oldu · Doğrusu · İşlendiği yer**. Halil'in her düzeltmesi bir derstir.
+
+- **1 Ekim 2026 · Strazburg 31480 (İKİNCİ KEZ)** · Aynı eski editör sekmesinden
+  "Güncelle" (00:16) sayfayı yine ilk taslağa döndürdü · Uyarı yetmedi; teknik kilit:
+  `gz_api_kilit` = 1 + WPCode "GBC · API kilidi" parçası. Her yeni rehbere kilit
+  metası konur · SKILL 0, Ek A 5.14.
 
 - **30 Eylül 2026 · Alsas taslakları (31480, 31496, 31498, 31500)** ·
   Hızlı Plan 5 adımdı, uçak adımı Skyscanner bağlantısı boş diye çıkarılmıştı ·

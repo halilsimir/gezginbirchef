@@ -411,6 +411,10 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
   kaydetmeden önce sayfa yenilenir (F5). Asistan, sayfa "bozuldu" denince önce
   `wp_history_list` ve `modified` saatine bakar, sonra kendi yazım kaydından
   alanları geri yükler.
+  **Kilit:** Claude'un yazdığı her rehbere `gz_api_kilit` = 1 metası konur. WPCode'daki
+  "GBC · API kilidi" parçası (`wpcode/gbc-api-kilidi.php`) bu yazılarda editör
+  formundan gelen ACF değerlerini kaydetmez; başlık, etiket ve Rank Math kaydedilir.
+  Editörden ACF düzenlemek için meta 0 yapılır.
 
 ### 5.15 Etiketler
 - Sıra: Ülke · Gezi · Noel Pazarları (varsa) · Vizeli/Vizesiz · VLOG · {ŞehirAdı}.
