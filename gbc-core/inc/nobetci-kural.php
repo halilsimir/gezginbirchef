@@ -181,8 +181,17 @@ function gbc_nk_motorlar() {
 			'kaynak' => 'modules/71-ortaklik-motoru.php',
 			'iz'     => 'css',
 			'desen'  => '.gbc-yan-ad',
-			'kapsam' => 'hepsi',
-			'not'    => __( 'LiteSpeed satır içi stili birleşik CSS dosyasına taşıyor; iz o dosyada aranır.', 'gbc-core' ),
+			/* v1.48.2 — kapsam 'hepsi' idi. UCSS açıldıktan sonra LiteSpeed
+			   kullanılmayan seçiciyi sayfa başına atıyor; kutusu olmayan
+			   /sebze-kesim-sekilleri/ için "Ortaklık stili durdu" yanlış
+			   alarmı çıktı (30 Eyl 2026, canlıda ölçüldü). Stil artık yalnız
+			   HTML'inde .gbc-yan-ad kutusu GEÇEN sayfada beklenir; gerçek
+			   bozulma (kutu var, stil yok) hâlâ yakalanır. Kutusuz sayfada
+			   stilin olması da olmaması da sorun değil: yalnız sayılır. */
+			'kapsam'        => 'kosul',
+			'kosul'         => 'yan_ad_var',
+			'kosul_disi'    => 'sayilir',
+			'not'    => __( 'LiteSpeed satır içi stili birleşik CSS dosyasına taşıyor; iz o dosyada aranır. UCSS kullanılmayan seçiciyi attığı için yalnız ortaklık kutusu olan sayfada beklenir.', 'gbc-core' ),
 		),
 
 		/* ---- KARAR BEKLEYENLER ----------------------------------------
@@ -567,6 +576,8 @@ function gbc_nk_tara_sayfa( $pid ) {
 		   değil, yapacak işi kalmamış. Widget geri gelirse koşul sağlanır ve
 		   motor yeniden denetlenir. */
 		'sky_widget'   => ( false !== stripos( $html, 'widgets.skyscanner.net' ) ),
+		/* v1.48.2 — ortaklık kutusu (.gbc-yan-ad) DOM'da gerçekten var mı. */
+		'yan_ad_var'   => ( $xp->query( gbc_nk_xpath( '.gbc-yan-ad' ) )->length > 0 ),
 	);
 
 	$sonuc = array(
@@ -594,7 +605,11 @@ function gbc_nk_tara_sayfa( $pid ) {
 			case 'hepsi':     $beklenen = true; break;
 			case 'ana_haric': $beklenen = ! $ana_sayfa_mi; break;
 			case 'sablon':    $beklenen = in_array( $sablon, (array) $m['sablon'], true ); break;
-			case 'kosul':     $beklenen = ! empty( $kosullar[ $m['kosul'] ] ); break;
+			case 'kosul':
+				$beklenen = ! empty( $kosullar[ $m['kosul'] ] );
+				/* Koşul sağlanmıyorsa "olmamalı" değil, "fark etmez" (v1.48.2). */
+				if ( ! $beklenen && isset( $m['kosul_disi'] ) && 'sayilir' === $m['kosul_disi'] ) { $beklenen = null; }
+				break;
 			case 'sayilir':   $beklenen = null; break;  /* zorunlu degil */
 			case 'na':        $beklenen = null; break;  /* kural yazilmadi: olculur, sorun sayilmaz */
 		}
@@ -1243,6 +1258,7 @@ function gbc_nk_ekran() {
 				'ortaklik_var' => __( 'ortaklık bağlantısı olan sayfalar', 'gbc-core' ),
 				'fiyat_var'    => __( 'fiyat yazan sayfalar', 'gbc-core' ),
 				'sky_widget'   => __( 'Skyscanner widget’ı olan sayfalar (şu an hiçbiri)', 'gbc-core' ),
+				'yan_ad_var'   => __( 'ortaklık kutusu (.gbc-yan-ad) olan sayfalar', 'gbc-core' ),
 			);
 			$nerede .= ': ' . ( isset( $kosul_ad[ $m['kosul'] ] ) ? $kosul_ad[ $m['kosul'] ] : $m['kosul'] );
 		}

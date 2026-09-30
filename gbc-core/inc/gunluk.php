@@ -690,9 +690,30 @@ add_action( 'gbc_gunluk_kontrol', 'gbc_gunluk_calistir' );
 
 add_action( 'init', 'gbc_gunluk_cron_kur' );
 function gbc_gunluk_cron_kur() {
+	$saat = strtotime( 'tomorrow 05:40', current_time( 'timestamp' ) ) - ( (int) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 	if ( ! wp_next_scheduled( 'gbc_gunluk_kontrol' ) ) {
-		$saat = strtotime( 'tomorrow 05:40', current_time( 'timestamp' ) ) - ( (int) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS );
 		wp_schedule_event( $saat, 'daily', 'gbc_gunluk_kontrol' );
+		return;
+	}
+
+	/* v1.48.2 — SAAT KAYMASI. 30 Eyl 2026'da ölçüldü: iş 05:40 yerine
+	   20:12'de koşuyordu (bir MCP "şimdi çalıştır" çağrısı günlük tekrarı
+	   o ana taşımıştı). Kurulu olduğu için yukarıdaki kontrol onu hiç
+	   düzeltmiyordu. Artık günlük tekrar 05:40'tan 15 dakikadan fazla
+	   saparsa 05:40'a geri alınır. Kilit yüzünden konan tek seferlik
+	   "10 dk sonra yeniden dene" işine (schedule = false) dokunulmaz. */
+	$is = wp_get_scheduled_event( 'gbc_gunluk_kontrol' );
+	if ( ! $is || 'daily' !== $is->schedule ) { return; }
+	$ofset = (int) get_option( 'gmt_offset' ) * HOUR_IN_SECONDS;
+	$yerel = ( (int) $is->timestamp + $ofset ) % DAY_IN_SECONDS;
+	$hedef = 5 * HOUR_IN_SECONDS + 40 * MINUTE_IN_SECONDS;
+	$fark  = abs( $yerel - $hedef );
+	$fark  = min( $fark, DAY_IN_SECONDS - $fark );
+	if ( $fark > 15 * MINUTE_IN_SECONDS ) {
+		wp_unschedule_event( (int) $is->timestamp, 'gbc_gunluk_kontrol' );
+		/* Bugünün 05:40'ı henüz gelmediyse bugün, geçtiyse yarın. */
+		$bugun = $saat - DAY_IN_SECONDS;
+		wp_schedule_event( ( $bugun > time() ) ? $bugun : $saat, 'daily', 'gbc_gunluk_kontrol' );
 	}
 }
 

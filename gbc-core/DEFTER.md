@@ -5,7 +5,7 @@ Farklı bir sohbet MCP ile `gbc_defter` seçeneğini okuyarak projenin bütün
 kararlarını tek çağrıda öğrenebilir. **Kural: bir şey değiştiyse önce burası
 güncellenir, sonra kod yazılır.**
 
-Son güncelleme: 30 Eylül 2026 · Sürüm 1.48.1
+Son güncelleme: 30 Eylül 2026 · Sürüm 1.48.2
 
 ---
 
@@ -2374,3 +2374,37 @@ sayfa başına kullanılmayan seçiciyi atmak. Kural koşullu olmalı: seçici,
 yalnız HTML'inde `gbc-yan-ad` GEÇEN sayfaların CSS'inde aranmalı. Böylece
 gerçek bozulma (stil, ihtiyacı olan sayfadan silinmiş) hâlâ yakalanır.
 **v1.48.2'nin işi.** Alarmı susturmak değil, kuralı düzeltmek.
+
+---
+
+## v1.48.2 — yanlış alarm, saat kayması, UCSS rozeti (30 Eylül 2026)
+
+Kaynak kod bu sürümle birlikte GitHub'a (`halilsimir/gezginbirchef`, `gbc-core/`)
+kondu; önceki sürümler yalnız Mac'teki sohbette duruyordu.
+
+**1. `aff_stil` kuralı koşullu oldu.** Kapsam `hepsi` → `kosul: yan_ad_var`.
+Stil (`.gbc-yan-ad`) yalnız HTML'inde ortaklık kutusu GEÇEN sayfada beklenir.
+Kutusuz sayfada stilin olması da olmaması da sorun değil (`kosul_disi: sayilir`
+— "fazla" hükmü verilmez; yoksa UCSS'siz Ibiza gibi her sayfa alarm verirdi).
+Gerçek bozulma (kutu var, stil yok) hâlâ `eksik`. "Ortaklık stili durdu: Sebze
+Kesim Şekilleri" sorunu, açık sorunlu sayfalar her saatlik turda önce tarandığı
+için (B2) kurulumdan sonraki ilk turda kendiliğinden kapanır.
+`GBC_KURAL_SURUM` ve `GBC_NK_KURAL_SURUM` BİLEREK artırılmadı: artırmak
+defterdeki bütün açık sorunları süpürürdü (UCSS %56, 209 sayfa).
+
+**2. Günlük kontrol saati.** İş 05:40 yerine 20:12'de koşuyordu (bir MCP
+"şimdi çalıştır" çağrısı günlük tekrarı o ana taşımıştı); `gbc_gunluk_cron_kur`
+iş kurulu olduğu için hiç düzeltmiyordu. Artık günlük tekrar 05:40'tan 15
+dakikadan fazla saparsa 05:40'a geri alınır. Tek seferlik "kilit dolu, 10 dk
+sonra dene" işine dokunulmaz. 05:40 seçildi (02:40 değil): 03:20'deki dizin
+zincirinden SONRA koşar, sabah 07:53 raporu taze sonucu okur.
+
+**3. Hız ekranı UCSS'e "bilerek kapalı" diyordu.** UCSS 30 Eylül'de açıldı
+(§42) ama `gbc_hz_bilerek()` hâlâ '0' bekliyordu; ekran AÇIK ayara "bilerek
+kapalı" rozeti basıyordu. Liste boşaltıldı; rozet artık yalnız değer kararla
+uyuşuyorsa basılıyor. İki öneri metni güncellendi. `optm-ucss` "Düzelt"
+listesine konmadı: aç/kapa kararı kota ve beyaz listeyle birlikte elle verilir.
+
+Sınama: `testler/v1482_testi.php` — 18 onay. Eski kodla koşturuldu: 7 kırık,
+tam olarak bu üç düzeltmenin maddeleri. Mac'teki 51 dosyalık paket depoda
+YOK; ZIP'te gelmedi. Oraya eklenmeli.

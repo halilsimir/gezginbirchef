@@ -723,16 +723,21 @@ function gbc_hz_psi( $url, $strateji ) {
  * anahtar => array( beklenen deger, sebep )
  */
 function gbc_hz_bilerek() {
-	return array(
-		'optm-ucss' => array( '0', __( 'Bilerek kapalı (28 Eylül 2026): UCSS açılınca ana sayfa sekmeleri, mobil kart çizgisi ve SVG bozuldu. Ölü CSS bunun yerine şablon başına CSS ayırarak temizleniyor.', 'gbc-core' ) ),
-	);
+	/* v1.48.2 — optm-ucss buradan çıkarıldı. 28 Eylül'de kapalı kalması
+	   karardı; 30 Eylül'de beyaz liste 118 satıra genişletilip AÇILDI
+	   (DEFTER §42). Liste '0' beklemeye devam ettiği için ekran açık
+	   UCSS'e "bilerek kapalı" rozeti basıyordu — gerçeği gizleyen yanlış
+	   bilgi. Artık UCSS normal satır: açıksa yeşil, kapanırsa uyarı.
+	   Yeni bir "bilerek" kararı olursa buraya eklenir. */
+	return array();
 }
 
 function gbc_hz_duzeltilebilir() {
 	/* anahtar => array( etiket, hedef deger, aciklama ) */
 	return array(
-		/* optm-ucss BİLEREK KAPALI — gbc_hz_bilerek(). Buraya konulursa
-		   "Düzelt" düğmesi onu tekrar açar ve tasarım bozulur. */
+		/* optm-ucss bilerek BURADA DEĞİL: açık/kapalı kararı QUIC.cloud
+		   kotası ve beyaz listeyle birlikte elle verilir (DEFTER §42).
+		   "Düzelt" düğmesi onu kendiliğinden açıp kapatmamalı. */
 		'optm-css_async'   => array( __( 'Kritik CSS uygulama (Load CSS Asynchronously)', 'gbc-core' ), 1,
 			__( 'Bu açılmadan üretilen kritik CSS kullanılmaz.', 'gbc-core' ) ),
 		'optm-ccss_gen'    => array( __( 'Kritik CSS üretimi', 'gbc-core' ), 1,
@@ -1290,7 +1295,7 @@ function gbc_hz_oneriler( $s ) {
 			sprintf( __( 'En ağır sayfa: %1$s. Ölçülen boyut sıkıştırılmış, yani ziyaretçinin gerçekten indirdiği bayt. Eşik: 60 KB üstü izlenir, 80 KB üstü acil. %2$s', 'gbc-core' ),
 				$css_sayfa,
 				$css_max > 80000 ? __( 'Şu an acil aralıkta.', 'gbc-core' ) : __( 'Şu an izleme aralığında.', 'gbc-core' ) ),
-			__( 'Aşağıdaki “dosya dosya” tablosunda en çok ölü kuralı olan dosyadan başla. (UCSS bilerek kapalı — açılınca ana sayfa sekmeleri, mobil kart çizgisi ve SVG bozuluyor.)', 'gbc-core' ) );
+			__( 'Aşağıdaki “dosya dosya” tablosunda en çok ölü kuralı olan dosyadan başla. (UCSS 30 Eylül 2026’dan beri açık; aylık kotayla ulaştığı şablonlarda CSS ~%55 düşüyor.)', 'gbc-core' ) );
 	}
 
 	/* 3) Olu CSS */
@@ -1299,7 +1304,7 @@ function gbc_hz_oneriler( $s ) {
 			sprintf( __( 'CSS sınıflarının %%%d\'i hiçbir sayfada geçmiyor', 'gbc-core' ), (int) $s['olu_css']['yuzde'] ),
 			sprintf( __( '%1$d sınıftan %2$d tanesi ölçülen sayfaların hiçbirinde kullanılmıyor. Her ziyaretçi bunları da indiriyor.', 'gbc-core' ),
 				(int) $s['olu_css']['toplam'], (int) $s['olu_css']['olu'] ),
-			__( 'UCSS bilerek kapalı (tasarımı bozuyordu). Çözüm: şablon CSS’ini şablon başına ayırmak ve kullanılmayan kuralları sayfa sayfa test ederek silmek.', 'gbc-core' ) );
+			__( 'UCSS 30 Eylül 2026’dan beri açık ve QUIC.cloud’un aylık kotasıyla şablon şablon işliyor; oran, UCSS’in ulaştığı şablon sayısı arttıkça düşer. Ayın 1’indeki ölçüm hangi şablonların kaldığını gösterir. Kota yetmezse kalıcı çözüm: şablon CSS’ini şablon başına ayırmak.', 'gbc-core' ) );
 	}
 
 	/* 4) JS agirligi ve dosya sayisi */
@@ -1907,7 +1912,9 @@ function gbc_hz_ekran() {
 			. '<th style="width:110px">' . esc_html__( 'Durum', 'gbc-core' ) . '</th>'
 			. '<th>' . esc_html__( 'Ne işe yarar', 'gbc-core' ) . '</th></tr></thead><tbody>';
 		foreach ( $s['litespeed']['kontroller'] as $k ) {
-			if ( ! empty( $k['bilerek'] ) ) {
+			/* Rozet yalnız karar gerçekten uygulanmışsa: değer kararla
+			   çelişiyorsa aşağıdaki normal karşılaştırma gösterilir. */
+			if ( ! empty( $k['bilerek'] ) && (string) $k['deger'] === (string) $k['iyi'] ) {
 				$rz = '<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700;color:#5C4A16;background:#FBF1D9">'
 					. esc_html__( 'bilerek kapalı', 'gbc-core' ) . '</span>';
 			} elseif ( null === $k['iyi'] ) {

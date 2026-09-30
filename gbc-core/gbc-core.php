@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GBC Core
  * Description: gezginbirchef.com motorları. WPCode'dan taşınan 19 modül tek eklentide toplanır. Kontrol Merkezi her gün bütün motorları canlı sayfada test eder. Her modül, WPCode sürümü hâlâ çalışıyorsa kendini yüklemez.
- * Version: 1.48.1
+ * Version: 1.48.2
  * Author: Gezginbirchef
  * Requires PHP: 8.0
  * Text Domain: gbc-core
@@ -19,7 +19,7 @@ define( 'GBC_CORE_URL', plugin_dir_url( __FILE__ ) );
    29 Eyl 2026: GBC_CORE_SURUM hic tanimlanmamisti; inc/gunluk.php onu
    okudugu icin kural surumu surekli '0' kaliyor, eklenti guncellenince
    sorun defteri supurulmuyordu. GBC_CORE_VER de 1.14.0'da takili kalmisti. */
-define( 'GBC_CORE_SURUM', '1.48.1' );
+define( 'GBC_CORE_SURUM', '1.48.2' );
 define( 'GBC_CORE_VER', GBC_CORE_SURUM );
 
 /* KURAL SÜRÜMÜ — sorun defterinin süpürme damgası.
