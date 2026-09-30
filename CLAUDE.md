@@ -1,6 +1,6 @@
 # GBC Gezi Rehberi Kural Defteri (v2)
 
-Sürüm: 30 Eylül 2026 · gezginbirchef.com · Gezi şablonu (WPCode 22607/22608)
+Sürüm: v2.1, 30 Eylül 2026 · gezginbirchef.com · Gezi şablonu (WPCode 22607/22608)
 
 Bu dosya her oturumda okunur. Bir gezi rehberi açılırken ya da düzeltilirken
 buradaki sıra ve kararlar uygulanır. Kaynaklar: Halil'in Pillar Kural Defteri v1
@@ -38,7 +38,7 @@ buradaki sıra ve kararlar uygulanır. Kaynaklar: Halil'in Pillar Kural Defteri 
 | 5 | Başlık ve SEO | kelime listesi | post title, `hero_custom_title`, Rank Math, H2'ler |
 | 6 | Bölümleri doldur | transkript + resmî kaynak | bölüm 5'teki alan standardı |
 | 7 | Ortaklık | defter 30120 | eksik satırlar önce deftere, sonra kısa kod (bölüm 6) |
-| 8 | Yan sütun | | Hızlı Plan 5 adım, kaç gün, trip_links |
+| 8 | Yan sütun | | Hızlı Plan 6 adım (1. adım uçak), kaç gün, trip_links |
 | 9 | Şema | koordinatlar | `gbc_schema_geo`, `gbc_schema_yerler`, `gz_video_duraklar` |
 | 10 | Kontrol listesi | | bölüm 7 |
 | 11 | Taslakta bırak | | yayın Halil'in onayıyla |
@@ -299,13 +299,23 @@ DEĞİLSE
 - `route_onerilen` (meta): önerilen gün.
 - `kart_gun`: "{Şehir} Kaç Günde Gezilir?". `kart_mevsim`: "{Şehir}'a Ne Zaman Gidilir?"
 
-**Hızlı Plan: Gitmeden 5 Adım** (meta, royal `wp_update_post_meta`):
-- `gz_yakin_bas` = "{Şehir} Hızlı Plan: Gitmeden 5 Adım", `gz_yakin_ust` = "1".
-- `gz_yakin_yerler` = **tam 5 satır**, satır biçimi `[gbc_aff id=X_yan stil=yan]N. Adım: Başlık | Kısa açıklama[/gbc_aff]`.
-- Varsayılan sıra: uçak, otel, aktarma treni ya da transfer, şehre özgü tur/bilet, araç.
-- **Her satırın defterde bağlantısı dolu olmalı.** Boş satır basılmaz, adım
-  sayısı eksik görünür. Uçak bağlantısı henüz yoksa uçak adımı çıkarılır,
-  numaralar kaydırılır, bağlantı gelince geri eklenir.
+**Hızlı Plan: Gitmeden 6 Adım** (meta, royal `wp_update_post_meta`):
+- `gz_yakin_bas` = "{Şehir} Hızlı Plan: Gitmeden 6 Adım", `gz_yakin_ust` = "1".
+- `gz_yakin_yerler` = **tam 6 satır**, satır biçimi `[gbc_aff id=X_yan stil=yan]N. Adım: Başlık | Kısa açıklama[/gbc_aff]`.
+- Sıra sabit:
+  1. **Uçak** (`sky_{havalimanı}_yan`, Skyscanner): her zaman 1. adım.
+  2. Otel (`bk_{şehir}_yan`).
+  3. Aktarma treni ya da transfer (`omio_{kalkış}_{varış}_yan`).
+  4. Şehre özgü tur ya da bilet (`gyg_{şehir}_{konu}_yan`).
+  5. İkinci tur/bilet ya da yedek otel (`gyg_…_yan`, `bk_{komşu}_yan`).
+  6. Araç (`dc_{şehir}_yan`).
+- Şablon satır sınırı koymuyor; kaç satır yazılırsa o kadar basılır.
+- Uçak satırının Skyscanner bağlantısı defterde henüz boşsa satır **yine yazılır**
+  (taslakta 1. adım görünmez, diğerleri 2-6 görünür). Halil kısa bağlantıyı
+  deftere yapıştırdığında adım kendiliğinden çıkar. Yayından önce altı satırın
+  altısının da bağlantısı dolu olmalı.
+- Aynı `_yan` id'si birden çok sayfada kullanılabilir (Basel uçuşu dört Alsas
+  sayfasında); aynı sayfada bir kez.
 
 **Sonra nereye (`trip_links`):**
 - Satır biçimi `Ad | URL | kısa not | aff_id`. `## Başlık | alt satır` yeni kart açar.
@@ -338,6 +348,12 @@ DEĞİLSE
   - içindekiler var
   - paragraflar kısa
 - `rank_math_pillar_content` = on.
+- **Editör tuzağı:** API ile yazılmış sayfa, API'den ÖNCE açılmış bir editör
+  sekmesinden "Güncelle" ile kaydedilirse ACF formu eski değerleri geri yazar
+  (30 Eylül 2026, Strazburg 31480 bu yüzden ilk taslağa döndü). Editörde
+  kaydetmeden önce sayfa yenilenir (F5). Asistan, sayfa "bozuldu" denince önce
+  `wp_history_list` ve `modified` saatine bakar, sonra kendi yazım kaydından
+  alanları geri yükler.
 
 ### 5.15 Etiketler
 - Sıra: Ülke · Gezi · Noel Pazarları (varsa) · Vizeli/Vizesiz · VLOG · {ŞehirAdı}.
@@ -358,8 +374,15 @@ DEĞİLSE
   | GetYourGuide | 108 | 3965 |
   | DiscoverCars | 117 | 3555 |
 
-- Skyscanner (Impact): kısa bağlantıyı Halil panelden üretir, sonuna `?subId1=ID`
-  eklenir. Satır bağlantısız açılabilir; boş satır hiçbir şey basmaz.
+- **Skyscanner (Impact), uçak:**
+  - Kısa bağlantı (`https://skyscanner.pxf.io/XXXXXX`) yalnız Impact panelinden
+    üretilir; asistan üretemez. Derin bağlantı (`/c/7683448/{AdID}/13416?u=…`)
+    için panelde duran AdID gerekir. Kısa bağlantılar açılmaz, tahmin edilmez.
+  - Sonuna `?subId1={defter_id}` eklenir. CampaignId 13416, partner 7683448.
+  - Başka bir şehrin kısa bağlantısı (ör. `sky_atina`) yeni şehir için kullanılmaz; o bağlantı Atina'yı açar.
+  - Yeni şehirde satır bağlantısız açılır (`sky_{havalimanı}` gövde, `sky_{havalimanı}_yan` yan sütun),
+    Halil'e "şu rota için kısa bağlantı" diye tek satırla istenir.
+  - Metin kalıbı: gövde "İstanbul - {Şehir} uçuşlarında en uygun tarihi ara", yan sütun "{Şehir} uçuşları".
 - **id kalıbı:** `{program}_{yer}[_{alt}]`.
   - Alt ekler: `_yan` (yan sütun), `_butce`, `_noel`, `_tekne`, `_katedral`, `_{bölge}`.
   - Rota: `omio_{kalkış}_{varış}`.
@@ -384,7 +407,7 @@ DEĞİLSE
 - [ ] Her rakamın kaynağı ve son kontrol tarihi var
 - [ ] Gezilecek yerler kartlarının hepsi videoda var
 - [ ] Her kısa kod id'si defterde var ve sayfada tek
-- [ ] Hızlı Plan'da 5 satır, 5'inin de bağlantısı dolu
+- [ ] Hızlı Plan'da 6 satır, 1. satır uçak; yayından önce 6'sının da bağlantısı dolu
 - [ ] `trip_links` iç adresleri sitede var
 - [ ] `rel_*` yalnız merkez sayfa modundaysa dolu
 - [ ] `card_trans_list`, `card_safe_list` boş (özel gerekçe yoksa)
@@ -407,6 +430,8 @@ DEĞİLSE
 
 ## 9. Değişiklik günlüğü
 
+- **v2.1 (30 Eylül 2026):** Hızlı Plan 6 adım, 1. adım her zaman uçak
+  (Skyscanner). Skyscanner bağlantı kuralı ayrıntılandı. Editör tuzağı eklendi.
 - **v2 (30 Eylül 2026):** üç mod karar ağacı, ⑪b ek bölüm yuvaları, günlük bütçe
   standardı, Basel emsali ulaşım kuralı, Hızlı Plan tam 5 adım, trip_links
   3 grup, SSS'te tekrar yasağı, şema metaları, ortaklık URL doğrulama.
