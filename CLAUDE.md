@@ -1,6 +1,6 @@
 # GBC Gezi Rehberi Kural Defteri (v2)
 
-Sürüm: v2.1, 30 Eylül 2026 · gezginbirchef.com · Gezi şablonu (WPCode 22607/22608)
+Sürüm: v2.2, 30 Eylül 2026 · gezginbirchef.com · Gezi şablonu (WPCode 22607/22608)
 
 Bu dosya her oturumda okunur. Bir gezi rehberi açılırken ya da düzeltilirken
 buradaki sıra ve kararlar uygulanır. Kaynaklar: Halil'in Pillar Kural Defteri v1
@@ -161,10 +161,58 @@ Kurallar:
 
 ## 5. Bölüm bölüm alan standardı
 
-Şablonun basış sırası:
-- **Sol sütun:** video → H1 → içindekiler → giriş → bütçe → nasıl gidilir →
-  nerede kalınır → gezilecek yerler → ne yenir → gitmeden → ⑪b ek bölümler →
-  SSS → "bu rehber nasıl hazırlandı".
+### 5.0 Sayfa yerleşimi (şablon 22607'den okundu)
+
+```
+┌───────────────────────────── ÜST SATIR ─────────────────────────────┐
+│ SOL SÜTUN (gz-main-column)            │ SAĞ SÜTUN (gz-sidebar-column)│
+│ ① video (bölüm damgaları altta)       │ Ⓐ Hızlı Bilgiler (vize, dil, │
+│ ② H1 (hero_custom_title)              │    para, fiş, eSIM, hava)    │
+│ ④ İçindekiler (H2'lerden otomatik)    │ Ⓑ Ne zaman gidilir (4 mevsim)│
+│ ⑤ Giriş (hero_intro_text)             │ Ⓒ Kaç gün (1/3/7 rozet)      │
+│ ⑥ Bütçe (yeşil bant, 3 sütun)         │ Ⓓ Videoda en iyi anlar       │
+│ ⑦ Nasıl gidilir (uçak/tren/araç)      │ Hızlı Plan: Gitmeden 6 Adım  │
+│ ⑦b Nerede kalınır (bölge kartları)    │ Ⓕ Sonra nereye (trip_links)  │
+├───────────────────────── ALT SATIR (GENİŞ) ─────────────────────────┤
+│ ⑧ Gezilecek yerler (kutu kutu kartlar)                              │
+│ ⑨ Ne yenir                                                          │
+│ ⑪ Gitmeden bilmeniz gerekenler                                      │
+│ ⑪b Ek bölümler (Noel pazarı, alışveriş, tarih...; boşsa basılmaz)   │
+│ ⑫ SSS                                                               │
+│ ⑬ Bu rehber nasıl hazırlandı                                        │
+├─────────────────────────────────────────────────────────────────────┤
+│ Fotoğraf galerisi (gal_img_*; tam genişlik, en altta)               │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Geniş düzen anahtarı (en sık bozulan yer):**
+```
+EĞER layout_genis meta = "1"  → alt satır tam genişlik (iki sütunu kaplar)
+EĞER layout_genis meta = "0"  → alt satır da sol sütunda akar
+BOŞSA (varsayılan):
+  EĞER rel_places / rel_food / rel_stay / rel_routes'tan BİRİ doluysa
+      → geniş düzen KAPANIR (Atina merkez sayfa modu)
+  DEĞİLSE
+      → geniş düzen AÇIK (Sorrento, Strazburg tek sayfa modu)
+```
+- Tek sayfa modundaki bir rehberde `rel_*` doluysa hem kartlar 3'e kesilir hem
+  alt bölümlerin tam genişliği gider. "Kutular ve geniş alan kayboldu" şikâyetinde
+  ilk bakılacak yer burası.
+- Noel ve benzeri sezon konusu yeni alan istemez: `card_event_list` + `h2_event`
+  (⑪b) doldurulur, alt satırda kendiliğinden kendi H2'si ve içindekiler satırıyla basılır.
+- Ortaklık bağlantılarının yeri:
+  - uçak ⑦'de
+  - tren ⑦'de
+  - otel ⑦b'de (önce şehir, sonra bölge bölge)
+  - tur ve bilet ⑧ kartlarında ve bütçede
+  - araç ⑦'de
+  - sağ sütunda Hızlı Plan ve Sonra nereye
+
+Basış sırası özet:
+- **Sol sütun (üst satır):** video → H1 → içindekiler → giriş → bütçe → nasıl
+  gidilir → nerede kalınır.
+- **Alt satır (geniş):** gezilecek yerler → ne yenir → gitmeden → ⑪b ek bölümler →
+  SSS → "bu rehber nasıl hazırlandı" → galeri.
 - **Sağ sütun:** kısa bilgiler → ne zaman → kaç gün → videoda en iyi anlar →
   Hızlı Plan → sonra nereye.
 
@@ -409,7 +457,7 @@ DEĞİLSE
 - [ ] Her kısa kod id'si defterde var ve sayfada tek
 - [ ] Hızlı Plan'da 6 satır, 1. satır uçak; yayından önce 6'sının da bağlantısı dolu
 - [ ] `trip_links` iç adresleri sitede var
-- [ ] `rel_*` yalnız merkez sayfa modundaysa dolu
+- [ ] `rel_*` yalnız merkez sayfa modundaysa dolu (doluysa geniş düzen de kapanır, 5.0)
 - [ ] `card_trans_list`, `card_safe_list` boş (özel gerekçe yoksa)
 - [ ] Rozetle çelişen gün yok
 - [ ] Şema metaları dolu
@@ -430,6 +478,8 @@ DEĞİLSE
 
 ## 9. Değişiklik günlüğü
 
+- **v2.2 (30 Eylül 2026):** 5.0 sayfa yerleşimi haritası ve geniş düzen anahtarı
+  (`layout_genis`, `rel_*`) eklendi.
 - **v2.1 (30 Eylül 2026):** Hızlı Plan 6 adım, 1. adım her zaman uçak
   (Skyscanner). Skyscanner bağlantı kuralı ayrıntılandı. Editör tuzağı eklendi.
 - **v2 (30 Eylül 2026):** üç mod karar ağacı, ⑪b ek bölüm yuvaları, günlük bütçe
