@@ -2,9 +2,11 @@
 
 Sürüm: v2.3, 30 Eylül 2026 · gezginbirchef.com · Gezi şablonu (WPCode 22607/22608)
 
-Bu dosya her oturumda okunur. Aynı içerik, adım adım kurgu hâlinde
-`.claude/skills/gbc-gezi-rehberi/` skill'inde de var; ders kaydı
-`references/ogrenilenler.md`'de. Kural değişince üçü birlikte güncellenir. Bir gezi rehberi açılırken ya da düzeltilirken
+Bu dosya her oturumda okunur. Aynı içerik, adım adım kurgu, bu defter (Ek A) ve
+ders kaydı (Ek B) ile birlikte tek dosya olarak `.claude/skills/gbc-gezi-rehberi/SKILL.md`
+skill'inde; okunabilir kopyası Claude Docs'ta "GBC Gezi Rehberi Kurgu Kitabı"
+(https://claude.ai/code/artifact/c52125f1-4023-4896-a654-42a57f1e8c02). Kural
+değişince hepsi birlikte güncellenir. Bir gezi rehberi açılırken ya da düzeltilirken
 buradaki sıra ve kararlar uygulanır. Kaynaklar: Halil'in Pillar Kural Defteri v1
 (30 Eylül 2026), Sorrento (31232), Atina (22690), Taormina (30725) ve Strazburg
 (31480) çalışmaları. Çelişkide öncelik: GBC İşletim Anayasası > ortaklık defteri
