@@ -1,0 +1,22 @@
+ARŞİV — yüklenmeyen dosyalar
+
+nobetci-eski.php
+  Eski "Nöbetçi" ekranı. 28 Eylül 2026'da Kontrol Merkezi'ne katıldı.
+  Değerli parçaları yeni yerlerine taşındı:
+    - govde_genislet  -> inc/nobetci-kural.php · gbc_nk_css_govde()
+    - izleri_topla    -> inc/nobetci-kural.php · gbc_nk_izleri_topla()
+    - taban/karşılaştırma -> gbc_nk_tur() içindeki kayıp iz + boyut alarmı
+    - sunucu kontrolü -> gbc_nk_sunucu_kontrol()
+  Dosya YÜKLENMİYOR. Silmedim; istersen sen sil.
+
+74-travelpayouts-kaldirildi.php
+  Travelpayouts Link Üretici (WPCode 30243'ten taşınmıştı).
+  28 Eylül 2026'da KALDIRILDI. Sebep ölçüldü: ortaklık defterindeki
+  (sayfa 30120) 577 Travelpayouts bağlantısının hepsi aynı kalıpta ve
+  tamamen hesaplanabilir —
+    tp.media/r?campaign_id=<CID>&marker=767959&p=<P>&sub_id=<SUB>&trs=565047&u=<hedef>
+  API yalnızca kısa biçimi (booking.tpx.li/xxxx) üretiyordu; uzun biçim
+  aynı işi yapıyor. Link üretimi artık ortaklık motorunda, API'siz:
+  modules/71-ortaklik-motoru.php · gbc_aff_tp_uret()
+  Okuyucu gbc_tp_get() de oraya taşındı; gbc_tp_links seçeneği (57 kayıt)
+  yerinde duruyor, silinmedi.
