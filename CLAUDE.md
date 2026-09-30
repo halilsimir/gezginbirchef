@@ -309,7 +309,7 @@ DEĞİLSE
 
 **Sonra nereye (`trip_links`):**
 - Satır biçimi `Ad | URL | kısa not | aff_id`. `## Başlık | alt satır` yeni kart açar.
-- 4. sütun doluysa şablon URL'yi defterden (sub_id'li) okur.
+- Dördüncü sütun doluysa şablon URL'yi defterden (sub_id'li) okur.
 - Varsayılan üç grup:
   1. "{Şehir}'dan Trenle": Omio satırları.
   2. "Arabası Olmayanlar İçin Turlar": GYG satırları.
