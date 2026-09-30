@@ -241,7 +241,9 @@
 - Sayfa bitince baştan sona test edilir: hız, schema.org, H1/H2 yapısı, SEO, arama kapsamı yüzdesi. Önce analiz, sonra düzeltme.
 - Test-düzelt-test robot gibi yapılır, hiçbir madde kaçmaz.
 - Ortaklık doğrulama denetimi (altı kontrol), mobil 390 px taşma, İçindekiler ve yazar kutusu varlığı canlıda ölçülür.
-- Sayfa Denetimi (GBC skoru) çalıştırılır; hazır sayılmak için skor ≥70.
+- Sayfa Denetimi (GBC skoru) çalıştırılır. Hedef %100'e yakın, en az %90 (%70 yalnız alt sınır).
+  Yapılacaklar kutusundaki her madde düzeltilir, denetim yeniden çalıştırılır; madde atlanmaz
+  (1 Ekim 2026, Halil). Ayrıntı: gbc-gezi-rehberi skill'i, Ek A 5.16.
 
 ## Örnek sayfa: Sorrento (31232)
 

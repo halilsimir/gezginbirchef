@@ -1,6 +1,6 @@
 # GBC Gezi Rehberi Kural Defteri (v2)
 
-Sürüm: v2.3, 30 Eylül 2026 · gezginbirchef.com · Gezi şablonu (WPCode 22607/22608)
+Sürüm: v2.4, 1 Ekim 2026 · gezginbirchef.com · Gezi şablonu (WPCode 22607/22608)
 
 Bu dosya her oturumda okunur. Aynı içerik, adım adım kurgu, bu defter (Ek A) ve
 ders kaydı (Ek B) ile birlikte tek dosya olarak `.claude/skills/gbc-gezi-rehberi/SKILL.md`
@@ -53,7 +53,7 @@ buradaki sıra ve kararlar uygulanır. Kaynaklar: Halil'in Pillar Kural Defteri 
 | 7 | Ortaklık | defter 30120 | eksik satırlar önce deftere, sonra kısa kod (bölüm 6) |
 | 8 | Yan sütun | | Hızlı Plan 6 adım (1. adım uçak), kaç gün, trip_links |
 | 9 | Şema | koordinatlar | `gbc_schema_geo`, `gbc_schema_yerler`, `gz_video_duraklar` |
-| 10 | Kontrol listesi | | bölüm 7 |
+| 10 | Kontrol listesi + Sayfa Denetimi | | bölüm 7; GBC skoru %90+ (hedef %100), bütün Yapılacaklar kapalı (5.16) |
 | 11 | Taslakta bırak | | yayın Halil'in onayıyla |
 | 12 | Görseller | Halil | videodan kare, 1200x675 WebP (bölüm 5.4) |
 
@@ -161,8 +161,8 @@ Kurallar:
 | Nereye | Kural |
 |---|---|
 | Post title ve `hero_custom_title` | En yüksek hacimli seyahat kelimesiyle başlar, yıl içerir ("Strazburg Gezilecek Yerler 2026: …") |
-| `rank_math_title` | En fazla 60 karakter, anahtar kelimeyle başlar, sayı içerir |
-| `rank_math_description` | En fazla 160 karakter; ilk 3 kelime grubu geçer |
+| `rank_math_title` | 30-60 karakter, anahtar kelimeyle başlar, sayı içerir |
+| `rank_math_description` | 120-160 karakter (Sayfa Denetimi aralığı); ilk 3 kelime grubu geçer |
 | `rank_math_focus_keyword` | En fazla 5 kelime, hacim sırasıyla |
 | `hero_intro_text` ilk cümle | En çok aranan soruya cevap ("strazburg nerede" 2.400 ise ilk cümle nerede olduğunu söyler). İki yazım birlikte: "Strazburg (Strasbourg)" |
 | İlk iki paragraf | En önemli kelimeler burada geçer |
@@ -431,6 +431,32 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
 - Sıra: Ülke · Gezi · Noel Pazarları (varsa) · Vizeli/Vizesiz · VLOG · {ŞehirAdı}.
 - "Görülecek Yerler" (1188) Gezi şablonunda **yasak**.
 
+### 5.16 Sayfa Denetimi: hedef %100 (1 Ekim 2026, Halil)
+- Sayfa bitince gbc-core **Sayfa Denetimi** (GBC skoru) çalıştırılır. Hedef **%100'e
+  yakın, en az %90**. %70 yalnız "hazır" alt sınırıdır, hedef değildir.
+- Denetimin **Yapılacaklar** kutusundaki ve **Kontroller** tablosundaki puan kaybettiren
+  **her madde** tek tek düzeltilir, denetim yeniden çalıştırılır (test, düzelt, test).
+  Madde atlanmaz, "sonra bakarız" denmez.
+- Bölümler ve rehberdeki karşılığı:
+  - **İçerik yapısı:** tek H1, başlık sırası atlamıyor (H2'den H4'e inilmez), en az 3 H2,
+    her görselde alt metin, eski yıl yok (başlık ve metinde güncel yıl).
+  - **Meta:** `rank_math_description` 120-160 karakter, `rank_math_title` 30-60 karakter.
+  - **URL:** HTTP 200, canonical bu adres, noindex yok.
+  - **Bağlantılar:** en az 3 iç bağlantı; ölü bağlantı yok; iç bağlantı yönlendirmesiz son
+    adrese gider (`wp_search_posts` ile doğrulanmış adres); ortaklık yalnız kısa kodla
+    (yapı doğru, `rel="sponsored"` şablondan gelir).
+  - **Şema:** `gbc_schema_geo` ve `gbc_schema_yerler` dolu; denetimin "olması gereken"
+    dediği şemaların hepsi basılıyor.
+  - **Kelime:** aylık 20+ aranan eksik kelime kalmaz; eksik kelime uygun H2'ye, kart
+    başlığına ya da SSS'e işlenir (tek yer kuralı bozulmadan).
+  - **Kanibalizasyon:** aynı kelimeyi hedefleyen başka sayfa varsa Halil'e öneri yazılır
+    (odak değişikliği ya da birleştirme); kendiliğinden sayfa silinmez.
+  - **Google dizini, Silo:** yayından sonra ölçülür. Silo için üst (bölge/ülke) sayfaya,
+    yan (komşu şehir) sayfalara ve alt sayfalara bağ `trip_links` ve metin içinde kurulur.
+- Taslakta ölçülemeyen maddeler (HTTP 200, dizin) yayından hemen sonra ölçülür ve
+  kapatılır; geri kalan her madde yayından ÖNCE yeşil olur.
+- Düzeltilemeyen madde kalırsa nedeni ve ne gerektiği Halil'e tek satırla yazılır.
+
 ---
 
 ## 6. Ortaklık (defter 30120)
@@ -485,6 +511,7 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
 - [ ] `card_trans_list`, `card_safe_list` boş (özel gerekçe yoksa)
 - [ ] Rozetle çelişen gün yok
 - [ ] Şema metaları dolu
+- [ ] Sayfa Denetimi en az %90 (hedef %100); Yapılacaklar kutusunda açık madde yok
 - [ ] Sayfa taslakta
 
 ---
@@ -502,6 +529,9 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
 
 ## 9. Değişiklik günlüğü
 
+- **v2.4 (1 Ekim 2026):** 5.16 Sayfa Denetimi: hedef %100, en az %90; bütün Yapılacaklar
+  maddeleri düzeltilir. Meta uzunlukları denetim aralığına çekildi (açıklama 120-160,
+  başlık 30-60). Eski format yasak listesi bölüm 0'a eklendi.
 - **v2.3 (30 Eylül 2026):** gbc-gezi-rehberi skill'i açıldı. Merkez sayfada
   `limit_places` = 4, yemekte önce meşhurlar, `related_videos` eklendi.
 - **v2.2 (30 Eylül 2026):** 5.0 sayfa yerleşimi haritası ve geniş düzen anahtarı
