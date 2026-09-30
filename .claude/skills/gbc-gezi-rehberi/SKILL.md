@@ -1,20 +1,345 @@
-# GBC Gezi Rehberi Kural Defteri (v2)
+---
+name: gbc-gezi-rehberi
+description: gezginbirchef.com'da videosu çekilmiş bir şehir için Gezi şablonlu (WPCode 22607/22608) rehber açarken, doldururken ya da düzeltirken kullan. Sayfanın baştan sona kurgusunu (video, kelime, giriş, bütçe, ulaşım, konaklama, yerler, yemek, gitmeden, Noel gibi özel bölümler, SSS, sağ sütun, ortaklık, şema) if/else kararlarıyla taşır. Her işin sonunda öğrenilenleri kendine yazar.
+---
 
-Sürüm: v2.4, 1 Ekim 2026 · gezginbirchef.com · Gezi şablonu (WPCode 22607/22608)
+# GBC Gezi Rehberi Kurgusu
 
-Bu dosya her oturumda okunur. Aynı içerik, adım adım kurgu, bu defter (Ek A) ve
-ders kaydı (Ek B) ile birlikte tek dosya olarak `.claude/skills/gbc-gezi-rehberi/SKILL.md`
-skill'inde; okunabilir kopyası Claude Docs'ta "GBC Gezi Rehberi Kurgu Kitabı"
-(https://claude.ai/code/artifact/c52125f1-4023-4896-a654-42a57f1e8c02). Kural
-değişince hepsi birlikte güncellenir. Bir gezi rehberi açılırken ya da düzeltilirken
-buradaki sıra ve kararlar uygulanır. Kaynaklar: Halil'in Pillar Kural Defteri v1
-(30 Eylül 2026), Sorrento (31232), Atina (22690), Taormina (30725) ve Strazburg
-(31480) çalışmaları. Çelişkide öncelik: GBC İşletim Anayasası > ortaklık defteri
-(30120) > bu dosya.
+Okunabilir kopya: Claude Docs, "GBC Gezi Rehberi Kurgu Kitabı" (https://claude.ai/code/artifact/c52125f1-4023-4896-a654-42a57f1e8c02).
+
+Bu skill bir gezi rehberini **baştan sona, sayfadaki sırayla** kurar. Her adımda
+"hangi alan, ne zaman doldurulur, ne zaman boş kalır" kararı yazılıdır.
+Her şey bu tek dosyada:
+- Bölüm 0-9: adım adım kurgu (kısa, karar odaklı).
+- **Ek A:** ayrıntılı kural defteri (her alanın standardı, HTML kalıpları, tablolar).
+- **Ek B:** öğrenilenler (geçmiş hatalar ve doğrusu, en yeni en üstte).
+
+**Başlamadan önce Ek B'yi oku.** Ek B'deki bir ders bu dosyanın geri kalanıyla
+çelişirse ders kazanır (daha yenidir) ve ilgili bölüm de güncellenir.
+
+Öncelik sırası: GBC İşletim Anayasası > ortaklık defteri (30120) > kural defteri > bu skill.
 
 ---
 
-## 0. Amaç ve ilke
+## 0. Değişmez kurallar (her sayfada)
+
+- **ESKİ FORMAT YASAK (1 Ekim 2026, Halil):** Aşağıdakiler hiçbir Gezi sayfasına yazılmaz;
+  görülürse yeni formata çevrilir:
+  - yer ve ipucu kartı yerine düz `<ul class="gbc-check">` listesi
+  - "€/gece" bütçe; `gz-chef-note gz-not--tasarruf` tek bütçe kutusu
+  - `card_safe_list` (acil numara bölümü), `card_trans_list` (şehir içi ulaşım)
+  - tek sayfa modunda dolu `rel_*` (kutular 3'e iner, geniş düzen kapanır)
+  - `trip_links`'e post ID ya da ID dizisi (satır biçimi `Ad | URL | not | aff_id`)
+  - "2-3 gün", "4-5 gün" gibi rozetle çelişen rota; videoda olmayan yer kartı
+  - Hızlı Plan'da 5 adım ya da uçaksız plan
+- Taslakta kalır; yayın Halil'in onayıyla.
+- Alkol yasak (adı da geçmez, şarap turu bağlantısı konmaz).
+- Em dash, elle ok (→ ↗), emoji, "şef" kelimesi, klişe listeleri yok.
+- **Tek yer:** bir bilgi sayfada bir kez, en güçlü yerinde. SSS dahil.
+- Rakamın yanında kaynak ve son kontrol tarihi. Doğrulanmamış rakam yazılmaz.
+- Gezilecek yerler kartına **videoda olmayan yer girmez**.
+- Birinci ağız ("gittik, yedik") yalnız videoda karşılığı varsa.
+- Kısa kod içeren alan yalnız `wp_acf_update_fields` ile yazılır. ACF olmayan
+  metalar (`gz_yakin_*`, `gun_cevap`, `route_ozet_*`, `h2_event`, şema) royal
+  `wp_update_post_meta` ile yazılır.
+- Kısa bağlantılar (pxf.io, tp.media, tpx.li) açılmaz, tahmin edilmez.
+- Her rehbere `gz_api_kilit` = 1 metasını koy (editör tuzağına karşı teknik kilit,
+  Ek A 5.14). Editörden eski sekmeyle kayıt iki kez sayfayı sıfırladı.
+- Her yazımdan sonra yazdığın alanları scratchpad'e JSON olarak da kaydet
+  (editör tuzağına karşı geri yükleme kaydı, bkz. bölüm 9).
+- **Sayfa Denetimi hedefi %100** (en az %90): iş bitince gbc-core Sayfa Denetimi
+  çalıştırılır, Yapılacaklar'daki her madde düzeltilir, denetim yeniden çalıştırılır (Ek A 5.16).
+
+---
+
+## 1. Hazırlık: video, kelime, mod
+
+### 1.1 Video
+```
+Transkripti çek (youtube_video_transcript).
+EĞER video yalnız bu şehirse
+    → hero_video_chapters = videonun tamamından en önemli 6-10 an
+    → hero_video_caption boş ya da "Videonun tamamı {Şehir}"
+DEĞİLSE (çok şehirli video)
+    → şehrin bölümünün başlangıç ve bitiş saniyesini bul
+    → hero_video_chapters = YALNIZ o bölümün damgaları, başka şehir girmez
+    → hero_video_caption = "Videonun {Şehir} bölümü MM:SS'de başlıyor"
+Transkriptten üç liste çıkar: gezilen yerler, yenen yerler, fiyat geçen yerler.
+```
+Biçim: `MM:SS | Başlık | Kısa açıklama`. Alkollü sahneye damga konmaz.
+
+### 1.2 Kelime araştırması
+- Ubersuggest `keyword_suggestions`, dil `tr`, locId `2792`.
+- Tohumlar: `{şehir}`, `{şehir} gezilecek yerler`, sezon konusu (`{şehir} noel pazarı`).
+- İki yazım: Strazburg / Strasbourg.
+- Ayıkla: futbol, maç, hava durumu, üniversite, cadde adı.
+- Hacim sıralı listeyi not al. Bütün başlık kararları buna göre verilir.
+
+### 1.3 Sayfa modu
+```
+EĞER bir alt konunun (yerler, yemek) sitede ayrı sayfası var
+  VE kelimesi ayda 1.000+ aranıyor VE 10'dan fazla durağı var
+    → MERKEZ SAYFA (Atina): rel_places / rel_food = alt sayfa id,
+      limit_places = 4 (ilk 4 kart görünür, "tamamı" düğmesi alt sayfaya gider)
+DEĞİLSE
+    → TEK SAYFA (Sorrento, Strazburg): bütün rel_* BOŞ, limit_* boş
+EĞER konu ayda 100+ aranıyor ama ana bölümlere girmiyor ve 1.000 altında
+    → ÖZEL BÖLÜM (⑪b yuvası; Noel pazarı, Messina)
+EĞER konu ayda 1.000+ ve sayfası yok
+    → yeni sayfa ÖNER, açma (Halil onaylar)
+```
+**Uyarı:** `rel_*` alanlarından biri doluysa geniş düzen kapanır (bkz. 2).
+Tek sayfada `rel_*` dolu kalırsa kutular 3'e iner, alt bölümler sıkışır.
+
+---
+
+## 2. Sayfanın haritası (şablonun bastığı sıra)
+
+```
+ÜST SATIR
+  SOL: video · H1 · içindekiler · giriş · bütçe · nasıl gidilir · nerede kalınır
+  SAĞ: hızlı bilgiler · ne zaman · kaç gün · videoda en iyi anlar ·
+       Hızlı Plan 6 adım · sonra nereye · (alakalı YouTube videoları)
+ALT SATIR (geniş, iki sütunu kaplar)
+  gezilecek yerler (+ harita) · ne yenir · gitmeden bilmeniz gerekenler ·
+  ⑪b özel bölümler (Noel vb.) · SSS · bu rehber nasıl hazırlandı
+EN ALT
+  fotoğraf galerisi (tam genişlik)
+```
+Geniş düzen: `layout_genis` = "1" açık, "0" kapalı; boşsa `rel_*` boşken açık.
+Boş bırakılan her bölüm basılmaz. Her alanı doldurmak zorunlu değil;
+okura yardım etmeyen alan boş kalır.
+
+Aşağıdaki adımlar bu sırayla doldurulur.
+
+---
+
+## 3. Üst satır, sol sütun
+
+### 3.1 Başlıklar ve SEO
+- Post title = `hero_custom_title`: en yüksek hacimli seyahat kelimesiyle başlar,
+  yıl içerir. Örnek: "Strazburg Gezilecek Yerler 2026: Nerede, Noel Pazarı ve Nasıl Gidilir".
+- `rank_math_title`: 30-60 karakter, kelimeyle başlar, sayı içerir.
+- `rank_math_description`: 120-160 karakter, ilk 3 kelime grubu.
+- `rank_math_focus_keyword`: en fazla 5 kelime, hacim sırasıyla.
+- Her H2 (`h2_*`) o konunun en çok aranan kalıbı. İçindekiler H2'lerden otomatik
+  kurulur, ayrıca yazılmaz.
+
+### 3.2 Giriş (`hero_intro_text`)
+- `<section class="intro-block"><p class="intro-lead"><strong>İlk cümle.</strong> …</p></section>`
+- **İlk cümle en çok aranan soruya cevap** ("strazburg nerede" en yüksekse ilk
+  cümle nerede olduğunu söyler). İki yazım birlikte: "Strazburg (Strasbourg)".
+- 50-60 kelime, kısa cümleler. En önemli kelimeler ilk iki paragrafta.
+- Girişteki sayı sayfayla tutar ("dört durak" = dört kart).
+
+### 3.3 Bütçe (`budget_*`)
+- **Kişi başı, bir günlük, yemek dahil. Konaklama ve uçak HARİÇ.** "€/gece" yazılmaz.
+- Üç bant: `budget_low/mid/high_price` + `_desc` (o günün kalemleri).
+- `budget_note` ilk paragraf sabit: "Rakamlar kişi başı ve bir günlük. **Yemek
+  dahil; konaklama ve uçak bileti hariç.**" İkinci paragraf yöntem ve tarih.
+- `card_budget_desc` sırası: kaynak cümlesi · Şehir içi ulaşım · Giriş ve turlar
+  (+ `gyg_{şehir}`) · Yemek · Ücretsiz olanlar.
+- Kaynak: bizim fişimiz > resmî tarife > rehber bandı. Bilet satış sitesi kaynak değildir.
+
+### 3.4 Nasıl gidilir (`trans_*_detail`)
+```
+EĞER İstanbul'dan şehre direkt uçuş var
+    → trans_plane_detail: havalimanı + merkeze ulaşım + sky_{şehir}
+DEĞİLSE
+    → en yakın direkt uçuşlu havalimanı ("Strazburg'a değil, Basel'e uçun"),
+      direkt seferin bittiği tarih, sky_{havalimanı}
+    → trans_train_detail: aktarma treni + omio_{kalkış}_{varış}
+EĞER araçla gezilecek köy, kale, bölge var
+    → trans_car_detail: P+R / ZTL + dc_{şehir}
+Otobüs, feribot yalnız gerçekten kullanılıyorsa (boşsa basılmaz).
+```
+Mesafe soruları ("Paris X arası kaç km") burada değil, SSS'te.
+Şehir içi ulaşım (`card_trans_list`) varsayılan BOŞ.
+
+### 3.5 Nerede kalınır
+- `stay_summary`: bölgeleri tek cümlede sayar.
+- `card_stay_list`: başlık kutusunda şehrin tüm otelleri `bk_{şehir}` (Booking tek
+  oturum çerezi, bölümün başında). Sonra **bölge bölge** kart:
+  Kime uyar · Göze alın · "Aşağıdaki bağlantı doğrudan … otellerini açıyor." · `bk_{şehir}_{bölge}`.
+- Bölge bağlantısı o bölgenin otellerini açar (Booking `district/…` ya da `landmark/…`),
+  adres arama sonucundan doğrulanır.
+
+---
+
+## 4. Üst satır, sağ sütun
+
+| Kart | Alan | Kural |
+|---|---|---|
+| Hızlı bilgiler | `info_*`, `api_weather_city`, `api_timezone`, `info_esim_link` | Acil numara yalnız burada. eSIM yalnız burada. |
+| Ne zaman | `season_*_temp`, `season_*_durum`, `kart_mevsim` | "{Şehir}'a Ne Zaman Gidilir?" |
+| Kaç gün | `gun_cevap`, `route_ozet_1/3/7`, `route_onerilen`, `route_*_desc`, `kart_gun` | Rozet 1/3/7 sabit; "2 gün" yalnız `gun_cevap`'ta. `route_*_desc` "<strong>1 gün:</strong>" / "3 gün:" / "7 gün:" ile açılır. Özetler kümülatif. |
+| Videoda en iyi anlar | `hero_video_chapters` | 1.1'deki karar. |
+| Hızlı Plan | `gz_yakin_bas`, `gz_yakin_ust`=1, `gz_yakin_yerler` | Aşağıda. |
+| Sonra nereye | `trip_links` | Aşağıda. |
+| Alakalı YouTube | `related_videos` | `VideoID | Başlık | Not`; aynı şehrin başka videoları varsa. |
+
+**Hızlı Plan: Gitmeden 6 Adım** (tam 6 satır, sıra sabit):
+1. Uçak `sky_{havalimanı}_yan` (her zaman ilk)
+2. Otel `bk_{şehir}_yan`
+3. Aktarma treni / transfer `omio_…_yan`
+4. Şehre özgü tur ya da bilet `gyg_…_yan`
+5. İkinci tur/bilet ya da yedek otel
+6. Araç `dc_{şehir}_yan`
+
+Satır: `[gbc_aff id=X_yan stil=yan]N. Adım: Başlık | Kısa açıklama[/gbc_aff]`.
+Defterde bağlantısı boş satır basılmaz; Skyscanner bağlantısı bekleniyorsa satır
+yine yazılır, Halil'den kısa bağlantı istenir.
+
+**Sonra nereye (`trip_links`)**, yakın destinasyonlar:
+- Satır `Ad | URL | kısa not | aff_id`; `## Başlık | alt` yeni kart.
+- Üç grup: "{Şehir}'dan Trenle" (Omio) · "Arabası Olmayanlar İçin Turlar" (GetYourGuide) ·
+  "{Bölge} Rehberlerimiz" (iç sayfalar, `wp_search_posts` ile doğrulanmış).
+- Günübirlik yerler varsayılan olarak buraya gider, gövdeye değil.
+
+---
+
+## 5. Alt satır (geniş)
+
+### 5.1 Gezilecek yerler (`card_places_list`)
+- Yalnız videodaki yerler, video sırasıyla.
+- İskelet: `gz-places-wrapper` > `gz-plan-baslik` > numaralı `gz-place-card`.
+- Kart: görsel · `gz-inner-title` + `<small>` · etiketler (önce video çipi, sonra
+  2-3 `<b>`: ücret, süre, yer) · 2-4 kısa paragraf · biletliyse `gyg_{şehir}_{yer}`.
+- Kart başlıkları arama kalıbında.
+- İkinci grup (deniz, sahil) `gz-mavi`, numaralar devam eder.
+```
+EĞER durak sayısı çok VE "{şehir} gezilecek yerler" ayda 1.000+
+    → alt sayfa (haritalı liste) + rel_places + limit_places = 4
+DEĞİLSE → hepsi bu sayfada
+EĞER Google My Maps haritası var → card_places_tag (bölüm sonunda basılır)
+```
+
+### 5.2 Ne yenir (`food_summary`, `card_food_list`, `card_food_note`)
+```
+food_summary HER ZAMAN en üstte: şehrin en meşhur 3-6 yemeği.
+EĞER videoda mekâna gittik/yedik
+    → food_summary: meşhurlar + <strong>Denediklerimiz:</strong> + <strong>Bu gezide denemediklerimiz:</strong>
+      ("yemediğimizi yemiş gibi anlatmıyoruz")
+    → card_food_list: mekân kartları (gz-kirmizi), "Mekân adı: öne çıkan yemek", video çipi
+    → card_food_note: <strong>Hesap:</strong> mekân, kişi, toplam, kişi başı
+DEĞİLSE
+    → food_summary: "{Şehir}'de oturup yemek yemedik; aşağıda şehrin nesi meşhur, onu yazıyoruz."
+    → card_food_list: <ul class="gbc-check"> meşhur tatlar
+EĞER mekân çok VE "{şehir} ne yenir / nerede yenir" ayda 1.000+
+    → alt sayfa + rel_food (+ limit_food)
+```
+`h2_food`: "{Şehir}'da Ne Yenir? {3 meşhur ad}". Alkollü içecek yok.
+
+### 5.3 Gitmeden bilmeniz gerekenler (`card_tips_list`)
+- 4-8 kart, soru ya da sürpriz başlığı.
+- Konular: hangi havalimanı · önceden ayırtılacaklar · vize ve sınır ·
+  pratik güvenlik (çanta kontrolü, cep hırsızlığı) · kıyafet ve hava · şehre özgü sürpriz.
+- Sezon tarihleri burada değil (özel bölümde). Acil numara yok.
+
+### 5.4 Özel bölümler (⑪b, mevsim ve etkinlik)
+| Konu | Alan | Başlık metası |
+|---|---|---|
+| Noel pazarı, festival | `card_event_list` | `h2_event` |
+| Gövdede kalacak komşu konu | `card_trip_list` | `h2_trip` |
+| Alışveriş | `card_shop_list` | `h2_shop` |
+| Tarih | `card_hist_list` | `h2_hist` |
+| Çocukla | `card_kid_list` | `h2_kid` |
+| Akşam | `card_night_list` | `h2_night` |
+| Fotoğraf noktaları | `card_photo_list` | `h2_photo` |
+
+Sezonluk bölüm kart sırası:
+1. Bu yılın tarihi; açıklanmadıysa "henüz açıklanmadı" ve tahmin ayrı cümlede.
+2. Önceki yılların doğrulanmış tarihleri.
+3. Saatler.
+4. Nerede kuruluyor.
+5. Öne çıkan unsur, resmî ifadeyle.
+6. Nasıl gidilir ve P+R.
+7. Komşu şehirle birleştirme.
+8. Rehberli tur (`gyg_{şehir}_{konu}`).
+
+Resmî siteye dış bağlantı konur.
+
+### 5.5 SSS (`faq_1..10`)
+- 5-8 soru, hacim sırasıyla, **yalnız sayfada cevabı olmayanlar**:
+  mesafeler, nüfus, başkonsolosluk, outlet, "hangi ülkede" (girişte yoksa).
+- Cevap 1-2 cümle, kaynaklı.
+
+### 5.6 Galeri ve görseller
+- Videodan kare, 1200x675 WebP (PIL LANCZOS, quality 85, method 6).
+- Görsel yalnız yerler, yemek ve özel bölüm kartlarında.
+
+---
+
+## 6. Ortaklık (defter 30120)
+
+- Önce deftere satır, sonra sayfaya kısa kod. Aynı id sayfada bir kez.
+- Travelpayouts: `https://tp.media/r?campaign_id=C&marker=767959&p=P&trs=565047&sub_id=ID&u=URLENCODED`
+  - Booking: C=84, P=2076
+  - Omio: C=91, P=2078
+  - GetYourGuide: C=108, P=3965
+  - DiscoverCars: C=117, P=3555
+- Skyscanner (Impact): kısa bağlantıyı Halil panelden üretir, sonuna `?subId1=ID`.
+  Asistan üretemez, başka şehrin bağlantısını kullanmaz.
+- Hangi ihtiyaç nerede:
+  - uçak ve tren: nasıl gidilir
+  - otel: nerede kalınır (önce şehir, sonra bölge)
+  - tur ve bilet: yer kartları ve bütçe
+  - araç: nasıl gidilir
+  - sağ sütun: Hızlı Plan ve sonra nereye
+- Hedef URL yalnız birebir görülen adresten; slug tahmin edilmez.
+
+## 7. Şema ve etiketler
+- `gbc_schema_geo` = "enlem,boylam".
+- `gbc_schema_yerler`: `Tür | Ad | enlem,boylam | h2_places slug'ı (60) | adres`.
+- `gz_video_duraklar`: `M:SS | Durak`, yerler kartıyla aynı sıra.
+- Etiketler: Ülke · Gezi · Noel Pazarları (varsa) · Vizeli/Vizesiz · VLOG · Şehir.
+  "Görülecek Yerler" (1188) Gezi şablonunda yasak.
+- `rank_math_pillar_content` = on.
+
+## 8. Kontrol listesi (kaydetmeden önce)
+- [ ] Alkol, em dash, ok, emoji, "şef" taraması
+- [ ] Tek yer; SSS'te yukarıda cevaplanan soru yok
+- [ ] Girişteki sayılar kartlarla tutuyor
+- [ ] Her rakamın kaynağı ve tarihi var
+- [ ] Yer kartlarının hepsi videoda var
+- [ ] Kısa kod id'leri defterde var, sayfada tek
+- [ ] Hızlı Plan 6 satır, 1. uçak
+- [ ] `rel_*` yalnız merkez sayfada dolu (yoksa geniş düzen kapanır)
+- [ ] `card_trans_list`, `card_safe_list` boş
+- [ ] Rozetle çelişen gün yok
+- [ ] Şema metaları dolu
+- [ ] Sayfa Denetimi en az %90 (hedef %100); Yapılacaklar kutusunda açık madde yok
+- [ ] Sayfa taslakta
+
+---
+
+## 9. Kendini geliştirme (her işin sonunda ZORUNLU)
+
+Bu skill her işten sonra büyür. Kural atlanmasın diye:
+
+1. **İş bitince** Ek B'nin en üstüne bir kayıt ekle:
+   `Tarih · Sayfa (id) · Ne oldu · Doğrusu · Kural nereye işlendi`
+2. **Halil bir düzeltme istediyse** (ör. "bütçe gecelik değil günlük",
+   "5 adım değil 6, ilki uçak") bu **her zaman** bir ders sayılır ve kaydedilir.
+3. Ders genel bir kuralsa:
+   - bu dosyada ilgili bölümü ve Ek A'yı güncelle
+   - repodaki `CLAUDE.md`'yi güncelle (Ek A ile aynı içerik)
+   - sitedeki taslak "Gezi Rehberi Kural Defteri" sayfasını (31542) güncelle
+   - Claude Docs'taki "GBC Gezi Rehberi Kurgu Kitabı" belgesinin öğrenilenler tablosuna satır ekle
+   - sürüm numarasını artır
+4. Değişikliği commit et ve gönder. Mesajda hangi dersin işlendiği yazsın.
+5. Aynı hata ikinci kez görülürse kuralı daha görünür yere (bölüm 0'a) taşı.
+
+**Sayfa "bozuldu" denirse:** önce `wp_history_list` ve sayfanın `modified`
+saatine bak. Editörden eski sekmeyle kaydetme (editör tuzağı) en sık sebeptir.
+Scratchpad'deki yazım kaydından ya da oturum dökümündeki
+`wp_acf_update_fields` çağrılarından alanları geri yükle.
+
+---
+
+## Ek A. Ayrıntılı kural defteri (CLAUDE.md ile aynı)
+
+### A0. Amaç ve ilke
 
 - **Hız:** Videosu çekilmiş bir şehrin rehberi bu defterle tek oturumda,
   eksiksiz dolar. Her adımın girdisi ve çıktısı aşağıda yazılı.
@@ -26,21 +351,12 @@ buradaki sıra ve kararlar uygulanır. Kaynaklar: Halil'in Pillar Kural Defteri 
 - **Kararı asistan verir:** Kelime alakası, bölümün açılıp açılmayacağı, alanın
   boş kalıp kalmayacağı arama hacmine bakılarak asistan tarafından verilir.
   Şablonda her alanı doldurmak zorunlu değil.
-- **ESKİ FORMAT YASAK (1 Ekim 2026, Halil):** Aşağıdakiler hiçbir Gezi sayfasına yazılmaz;
-  görülürse yeni formata çevrilir:
-  - yer ve ipucu kartı yerine düz `<ul class="gbc-check">` listesi
-  - "€/gece" bütçe; `gz-chef-note gz-not--tasarruf` tek bütçe kutusu
-  - `card_safe_list` (acil numara bölümü), `card_trans_list` (şehir içi ulaşım)
-  - tek sayfa modunda dolu `rel_*` (kutular 3'e iner, geniş düzen kapanır)
-  - `trip_links`'e post ID ya da ID dizisi (satır biçimi `Ad | URL | not | aff_id`)
-  - "2-3 gün", "4-5 gün" gibi rozetle çelişen rota; videoda olmayan yer kartı
-  - Hızlı Plan'da 5 adım ya da uçaksız plan
 - **Doğrulanmamış bilgi yazılmaz:** Rakam resmî kaynaktan ya da bizim
   fişimizden gelir, yanında kaynak ve son kontrol tarihi durur.
 
 ---
 
-## 1. İş akışı (sırayla)
+### A1. İş akışı (sırayla)
 
 | # | Adım | Girdi | Çıktı |
 |---|---|---|---|
@@ -59,7 +375,7 @@ buradaki sıra ve kararlar uygulanır. Kaynaklar: Halil'in Pillar Kural Defteri 
 
 ---
 
-## 2. Sayfa modu kararı (karar ağacı)
+### A2. Sayfa modu kararı (karar ağacı)
 
 Şablon üç modda çalışıyor. Hangisinin seçileceği arama hacmine ve sitede var
 olan sayfalara bağlı.
@@ -116,7 +432,7 @@ Kurallar:
 
 ---
 
-## 3. Video ve transkript
+### A3. Video ve transkript
 
 - Transkript `youtube_video_transcript` ile çekilir.
 - Video birden fazla şehri kapsıyorsa **yalnız o şehrin bölümü** kullanılır:
@@ -141,7 +457,7 @@ Kurallar:
 
 ---
 
-## 4. Kelime araştırması
+### A4. Kelime araştırması
 
 **Çekme:**
 - `keyword_suggestions`, dil `tr`, locId `2792`.
@@ -172,9 +488,9 @@ Kurallar:
 
 ---
 
-## 5. Bölüm bölüm alan standardı
+### A5. Bölüm bölüm alan standardı
 
-### 5.0 Sayfa yerleşimi (şablon 22607'den okundu)
+#### A5.0 Sayfa yerleşimi (şablon 22607'den okundu)
 
 ```
 ┌───────────────────────────── ÜST SATIR ─────────────────────────────┐
@@ -231,18 +547,18 @@ Basış sırası özet:
 - **Sağ sütun:** kısa bilgiler → ne zaman → kaç gün → videoda en iyi anlar →
   Hızlı Plan → sonra nereye.
 
-### 5.1 Giriş (`hero_intro_text`)
+#### A5.1 Giriş (`hero_intro_text`)
 - Biçim: `<section class="intro-block"><p class="intro-lead"><strong>tek cümlelik cevap.</strong> …</p></section>`
 - 50–60 kelime, hap hap: kısa cümle, tek bilgi, nokta.
 - Girişteki sayılar sayfayla birebir tutar ("dört durak" diyorsa dört kart vardır).
 - Ortaklık bildirimi girişin altına şablondan gelir, elle yazılmaz.
 
-### 5.2 Kısa bilgiler (sağ sütun)
+#### A5.2 Kısa bilgiler (sağ sütun)
 - `api_weather_city`, `api_timezone` her sayfada dolu.
 - `info_visa_link`, `info_language_link`, `info_esim_link`: rehber varsa post id yazılır; yoksa boş kalır, sonra eklenir.
 - `info_emergency`, `info_internet` doludur. Acil numara başka hiçbir yerde tekrar edilmez.
 
-### 5.3 Bütçe
+#### A5.3 Bütçe
 - **Standart:** `budget_low/mid/high_price` = **kişi başı, bir günlük, yemek
   dahil, konaklama ve uçak hariç.** "€/gece" yazılmaz.
 - `budget_*_desc`: 2–3 cümle, o günün kalemleri (ulaşım bileti, giriş, tur, öğle ve akşam yemeği).
@@ -260,7 +576,7 @@ Basış sırası özet:
 - `h2_budget`: "{Şehir} Pahalı mı? 2026 Günlük Bütçe"
 - ⚠ Atina ("3 gece 4 gün") ve Taormina ("konaklama dahil") bu standarda uymuyor; sırası geldiğinde düzeltilecek.
 
-### 5.4 Görseller
+#### A5.4 Görseller
 - Kaynak videodan kare.
 - İşleme: PIL `Image.LANCZOS` + `save(quality=85, method=6)`, 1200x675 WebP. ImageMagick kullanılmaz.
 - Dosya adı: `NN-{şehir}-{yer}.webp` (yerler) ya da `{şehir}-{mekân}-{yemek}.webp` (yemek).
@@ -268,7 +584,7 @@ Basış sırası özet:
 - `<div class="gz-place-img"><img class="wp-image-ID" src="…" alt="…" width="1200" height="675" loading="lazy"></div>`
 - Görsel yalnız yerler, yemek ve özel bölüm kartlarında. Konaklama ve gitmeden kartlarında yok.
 
-### 5.5 Nasıl gidilir (`trans_*_detail`)
+#### A5.5 Nasıl gidilir (`trans_*_detail`)
 ```
 EĞER İstanbul'dan şehre direkt uçuş varsa
     → trans_plane_detail: havalimanı + merkeze ulaşım + [gbc_aff id=sky_{şehir}]
@@ -285,7 +601,7 @@ EĞER araçla gezilecek köy, kale ya da bölge varsa
 - Boş kalan `trans_bus/ship` alanı basılmaz.
 - `h2_transport`: "{Şehir}'a Nasıl Gidilir? Uçak Bileti, Havalimanı ve {aktarma}"
 
-### 5.6 Nerede kalınır
+#### A5.6 Nerede kalınır
 - `stay_summary`: bölgeleri tek cümlede sayar.
 - `card_stay_list`:
   - `gz-plan-baslik` içinde şehrin tüm otelleri: `[gbc_aff id=bk_{şehir}]` (Booking tek oturum çerezi, bölümün başında olmalı).
@@ -295,7 +611,7 @@ EĞER araçla gezilecek köy, kale ya da bölge varsa
   sonucundan doğrulanır.
 - `h2_stay`: "{Şehir} Otelleri: Nerede Kalınır?" ya da hacme göre "{Şehir}'da Nerede Kalınır? …"
 
-### 5.7 Gezilecek yerler (`card_places_list`)
+#### A5.7 Gezilecek yerler (`card_places_list`)
 - Yalnız videodaki yerler, video sırasıyla.
 - İskelet: `gz-places-wrapper` > `gz-plan-baslik` (`gz-plan-no` tek kelime: Merkez, Deniz…) > numaralı `gz-place-card`.
 - Kartta sırasıyla: görsel, `gz-inner-title` + `<small>alt başlık</small>`, `gz-inner-tags` (önce video çipi, sonra 2–3 `<b>` etiket: ücret, süre, yer), 2–4 kısa paragraf.
@@ -303,7 +619,7 @@ EĞER araçla gezilecek köy, kale ya da bölge varsa
 - İkinci grup (deniz, sahil) `gz-mavi` rengiyle; numaralar gruplar boyunca devam eder.
 - `card_places_tag`: Google My Maps iframe (varsa). `place_location`: basit harita iframe'i.
 
-### 5.8 Ne yenir
+#### A5.8 Ne yenir
 ```
 food_summary HER ZAMAN en üstte şehrin en meşhur 3-6 yemeğini sayar.
 EĞER şehrin bölümünde yemek sahnesi varsa
@@ -320,7 +636,7 @@ DEĞİLSE
 - Alkollü içecek yazılmaz, adı da geçmez.
 - `h2_food`: "{Şehir}'da Ne Yenir? {3 meşhur ad}"
 
-### 5.9 Gitmeden bilmeniz gerekenler (`card_tips_list`)
+#### A5.9 Gitmeden bilmeniz gerekenler (`card_tips_list`)
 - Kartlı yapı, 4–8 kart. Başlıklar soru ya da sürpriz kalıbında.
 - Planı en çok değiştiren konular:
   - hangi havalimanı
@@ -332,7 +648,7 @@ DEĞİLSE
 - Sezonluk tarihler burada değil, özel bölümde durur (tek yer kuralı).
 - Acil numara yazılmaz.
 
-### 5.10 Özel bölüm (⑪b)
+#### A5.10 Özel bölüm (⑪b)
 - Kalıp gezilecek yerlerle aynı (`gz-places-wrapper`). Kart başlıkları arama sorgusu.
 - **Sezonluk bölüm** (Noel pazarı, festival):
   1. Bu yılın tarihi. Açıklanmadıysa "henüz açıklanmadı" yazılır, rehber tahmini ayrı cümlede verilir.
@@ -345,7 +661,7 @@ DEĞİLSE
   8. Rehberli tur (`gyg_{şehir}_{konu}`).
 - Resmî siteye dış bağlantı: `<a href="…" target="_blank" rel="noopener">`.
 
-### 5.11 SSS (`faq_1..10`)
+#### A5.11 SSS (`faq_1..10`)
 - 5–8 soru. **Yukarıda cevabı olan hiçbir soru girmez.**
 - Hacim sırasıyla. Tipik sorular:
   - komşu şehirlerle mesafe ("… arası kaç km")
@@ -355,7 +671,7 @@ DEĞİLSE
   - "hangi ülkede" (girişte cevaplanmadıysa)
 - Cevap 1–2 cümle, rakam kaynaklı.
 
-### 5.12 Yan sütun
+#### A5.12 Yan sütun
 **Kaç gün:**
 - `gun_cevap` (meta): tek paragraf net cevap; 1 gün / 2 gün / uzun kalış (çevre) aynı paragrafta.
 - `route_ozet_1/3/7` (meta) kümülatif yazılır: merkez / merkez + … / merkez + çevre.
@@ -395,13 +711,13 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
 - eSIM burada tekrar edilmez (üstte `info_esim_link` var).
 - İç link adresi `wp_search_posts` ile doğrulanır, tahmin edilmez.
 
-### 5.13 Şema
+#### A5.13 Şema
 - `gbc_schema_geo` = "enlem,boylam" (şehir merkezi).
 - `gbc_schema_yerler`: her satır `Tür | Ad | enlem,boylam | çapa | adres`.
   - Tür: TouristAttraction / Church / LandmarksOrHistoricalBuildings / Hotel.
   - Çapa: `h2_places`'in ASCII slug'ı, ilk 60 karakter.
 
-### 5.14 Rank Math
+#### A5.14 Rank Math
 - Puan editörde hesaplanıyor. İçerik ACF'de olduğu için API gövdeyi boş görür;
   saklı puan editör açılıp kaydedilince yenilenir.
 - 90+ için:
@@ -427,11 +743,13 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
   formundan gelen ACF değerlerini kaydetmez; başlık, etiket ve Rank Math kaydedilir.
   Editörden ACF düzenlemek için meta 0 yapılır.
 
-### 5.15 Etiketler
+#### A5.15 Etiketler
 - Sıra: Ülke · Gezi · Noel Pazarları (varsa) · Vizeli/Vizesiz · VLOG · {ŞehirAdı}.
 - "Görülecek Yerler" (1188) Gezi şablonunda **yasak**.
 
-### 5.16 Sayfa Denetimi: hedef %100 (1 Ekim 2026, Halil)
+---
+
+#### A5.16 Sayfa Denetimi: hedef %100 (1 Ekim 2026, Halil)
 - Sayfa bitince gbc-core **Sayfa Denetimi** (GBC skoru) çalıştırılır. Hedef **%100'e
   yakın, en az %90**. %70 yalnız "hazır" alt sınırıdır, hedef değildir.
 - Denetimin **Yapılacaklar** kutusundaki ve **Kontroller** tablosundaki puan kaybettiren
@@ -457,9 +775,7 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
   kapatılır; geri kalan her madde yayından ÖNCE yeşil olur.
 - Düzeltilemeyen madde kalırsa nedeni ve ne gerektiği Halil'e tek satırla yazılır.
 
----
-
-## 6. Ortaklık (defter 30120)
+### A6. Ortaklık (defter 30120)
 
 - Sayfaya HTML yazılmaz, yalnız kısa kod. Defterde satırı olmayan id hiçbir şey basmaz.
 - Satır biçimi: `id | görünen metin | program | bağlantı | ağ`.
@@ -496,7 +812,7 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
 
 ---
 
-## 7. Kontrol listesi (kaydetmeden önce)
+### A7. Kontrol listesi (kaydetmeden önce)
 
 - [ ] Alkol taraması (`(?<![\p{L}\p{N}_])` kalıbı; "bırakın" gibi yanlış alarmlar elenir)
 - [ ] Em dash (—) yok, elle ok (→ ↗) yok, emoji yok, "şef" yok, klişe listesi yok
@@ -516,7 +832,7 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
 
 ---
 
-## 8. Açık konular (Halil'in onayı gerekiyor)
+### A8. Açık konular (Halil'in onayı gerekiyor)
 
 1. Bölüm 2'deki eşikler (1.000/ay alt sayfa, 100/ay özel bölüm) öneri; onaylanınca kesinleşir.
 2. Şablon gün etiketleri 1/3/7 sabit. "2 gün" etiketi için 22607'de küçük değişiklik gerekir.
@@ -527,9 +843,9 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
 
 ---
 
-## 9. Değişiklik günlüğü
+### A9. Değişiklik günlüğü
 
-- **v2.4 (1 Ekim 2026):** 5.16 Sayfa Denetimi: hedef %100, en az %90; bütün Yapılacaklar
+- **v2.4 (1 Ekim 2026):** A5.16 Sayfa Denetimi: hedef %100, en az %90; bütün Yapılacaklar
   maddeleri düzeltilir. Meta uzunlukları denetim aralığına çekildi (açıklama 120-160,
   başlık 30-60). Eski format yasak listesi bölüm 0'a eklendi.
 - **v2.3 (30 Eylül 2026):** gbc-gezi-rehberi skill'i açıldı. Merkez sayfada
@@ -544,3 +860,68 @@ aynı şehrin başka videoları varsa yan sütunda kapak karesiyle basılır.
   v1 kuralları (giriş, hızlı bilgiler, başlıklar, kaç gün, bütçe, kaynak,
   tek yer, etiket) eklendi.
 - **v1 (30 Eylül 2026):** Halil'in Pillar Kural Defteri.
+
+---
+
+## Ek B. Öğrenilenler (en yeni en üstte)
+
+Biçim: **Tarih · Sayfa · Ne oldu · Doğrusu · İşlendiği yer**. Halil'in her düzeltmesi bir derstir.
+
+- **1 Ekim 2026 · Genel (Sayfa Denetimi)** · Rehber "bitti" sayılıyordu ama gbc-core
+  Sayfa Denetimi'ndeki Yapılacaklar maddeleri açık kalıyordu; eski kılavuzda eşik %70'ti ·
+  Halil: "%100'e yaklaşması için düzeltmelerin hepsi yapılmalı". Hedef %100, en az %90;
+  her madde düzeltilip denetim yeniden çalıştırılır · SKILL 0 ve 8, Ek A 5.16, A1 adım 10, CLAUDE.md.
+
+- **1 Ekim 2026 · Genel (kaynak çatışması)** · Eski format üç yerden öğretiliyordu:
+  gbc-core `kilavuz/04-gezi.md` (ek bölümler "ölü alan", bütçe tek `gz-chef-note` kutusu,
+  Taormina "konaklama dahil"), hesap skill'i gbc-sayfa-calismasi ("trip_links post ID yazılır")
+  ve `main`'deki eski CLAUDE.md (Hızlı Plan 5 adım) · Üçü de bu skill'e bağlandı, eski format
+  yasak listesi SKILL 0'a ve CLAUDE.md'ye yazıldı; tek sayfada `layout_genis` = 1 · SKILL 0, Ek A 5.0.
+
+- **1 Ekim 2026 · Strazburg 31480 (İKİNCİ KEZ)** · Aynı eski editör sekmesinden
+  "Güncelle" (00:16) sayfayı yine ilk taslağa döndürdü · Uyarı yetmedi; teknik kilit:
+  `gz_api_kilit` = 1 + WPCode "GBC · API kilidi" parçası. Her yeni rehbere kilit
+  metası konur · SKILL 0, Ek A 5.14.
+
+- **30 Eylül 2026 · Alsas taslakları (31480, 31496, 31498, 31500)** ·
+  Hızlı Plan 5 adımdı, uçak adımı Skyscanner bağlantısı boş diye çıkarılmıştı ·
+  6 adım, 1. adım her zaman uçak; bağlantı boşsa satır yine yazılır, Halil'den
+  kısa bağlantı istenir · SKILL 4, kural defteri 5.12.
+
+- **30 Eylül 2026 · Strazburg 31480** · Halil editörde eski bir sekmeden
+  "Güncelle"ye bastı, ACF formu ilk taslağı geri yazdı (rel_places=16058,
+  düz listeler, €/gece bütçe). Kutular kayboldu, geniş düzen kapandı ·
+  Editörde kaydetmeden önce F5. "Bozuldu" denince önce wp_history_list ve
+  modified saati; alanlar yazım kaydından geri yüklenir · SKILL 9, kural defteri 5.14.
+
+- **30 Eylül 2026 · Strazburg 31480** · rel_places dolu olunca geniş düzen
+  kapanıyor ve kartlar 3'e iniyor (şablon 22607 v75) · Tek sayfa modunda bütün
+  rel_* boş; merkez sayfada limit_places = 4 · SKILL 1.3 ve 2, kural defteri 2 ve 5.0.
+
+- **30 Eylül 2026 · Strazburg 31480** · Bütçe "€/gece" yazılmıştı · Kişi başı,
+  günlük, yemek dahil, konaklama ve uçak hariç · SKILL 3.3, kural defteri 5.3.
+
+- **30 Eylül 2026 · Strazburg 31480** · Çok şehirli videonun tamamından damga
+  kullanılmıştı · Yalnız şehrin bölümü (25:37-26:48) · SKILL 1.1, kural defteri 3.
+
+- **30 Eylül 2026 · Strazburg 31480, Freiburg 31500** · Videoda olmayan yerler
+  (Galeries Lafayette, Neustadt, Schlossberg) yer kartı olmuştu · Yer kartı yalnız
+  videodakiler; diğerleri rota metnine ya da SSS'e · SKILL 0, kural defteri 3.
+
+- **30 Eylül 2026 · Strazburg, Freiburg, Obernai, Riquewihr** · SSS ve "gitmeden"
+  kartları sayfanın başka yerindeki bilgiyi tekrarlıyordu (Noel saatleri, park
+  et-bin, "hangi ülkede") · Tek yer kuralı SSS dahil · SKILL 0 ve 5.5.
+
+- **30 Eylül 2026 · Obernai 31498** · Rota "2-3 gün:" yazıyordu, rozet 3 ·
+  Rozetle çelişen gün yazılmaz; 2 gün yalnız gun_cevap'ta · SKILL 4.
+
+- **30 Eylül 2026 · Strazburg 31480** · Acil numaralar ve şehir içi ulaşım ayrı
+  bölüm olarak basılıyordu · card_safe_list ve card_trans_list varsayılan boş;
+  çanta kontrolü "gitmeden" kartına · SKILL 3.4 ve 5.3.
+
+- **30 Eylül 2026 · Strazburg 31480** · Günübirlik yerler gövdede listeydi ·
+  Yan sütunda trip_links'e Omio ve GetYourGuide bağlantısıyla · SKILL 4.
+
+- **30 Eylül 2026 · Genel** · Yemek sahnesi olmayan şehirde "sahne yok" gibi
+  teknik ifade kullanılmıştı · "Oturup yemek yemedik; şehrin nesi meşhur, onu
+  yazıyoruz." · SKILL 5.2.

@@ -2,6 +2,13 @@
 
 > Gezi şablonu (22607/22608) sayfası açarken, doldururken ve düzeltirken madde madde uygulanacak kontrol listesi; hiçbir alan es geçilmez.
 
+> **TEK KAYNAK (1 Ekim 2026, Halil kararı):** Gezi rehberinin güncel formatı depodaki
+> `.claude/skills/gbc-gezi-rehberi/SKILL.md` (skill) ve kökteki `CLAUDE.md`'dir.
+> Bu kılavuz onların özetidir; çelişki olursa **skill kazanır**. Eski format
+> (düz `<ul class="gbc-check">` yer/ipucu listeleri, "€/gece" bütçe, `gz-chef-note`
+> bütçe kutusu, acil numara bölümü, tek sayfada dolu `rel_*`, `trip_links`'e ID dizisi,
+> "2-3 gün" rota) hiçbir Gezi sayfasında kullanılmaz.
+
 ## Temel ilke
 
 - Şablondaki her alanı doldurmak zorunlu değil; ölçü arama hacmi ve okurun ihtiyacı.
@@ -74,8 +81,8 @@
 
 - Kapsam yüzde yüz net: kişi başı mı, günlük mü, otel ve uçak dahil mi hariç mi.
 - Her fiyat resmi kaynaktan doğrulanır. Üçüncü parti bilet sitesi kaynak sayılmaz.
-- Kapsam ("uçak hariç" gibi) aranmıyorsa başlığa değil karta/nota yazılır. Örnek (Taormina): başlık "Taormina Pahalı mı? Günlük Bütçe ve Fiyatlar", notun ilk cümlesi "Rakamlar kişi başı ve bir günlük. Konaklama dahil, uçak bileti hariç."
-- `card_budget_desc` yalnız bilgi kutusudur (`gz-chef-note gz-not--tasarruf`), içinde doğrudan ortaklık linki olmaz.
+- **Standart kapsam: kişi başı, bir günlük, yemek dahil; konaklama ve uçak HARİÇ.** "€/gece" yazılmaz. `h2_budget` = "{Şehir} Pahalı mı? 2026 Günlük Bütçe". `budget_note` ilk cümlesi sabit: "Rakamlar kişi başı ve bir günlük. Yemek dahil; konaklama ve uçak bileti hariç." (Taormina ve Atina bu standarda çekilecek.)
+- `card_budget_desc` kalemlidir: kaynak cümlesi · **Şehir içi ulaşım** · **Giriş ve turlar** (+ `[gbc_aff id=gyg_şehir]`) · **Yemek** · **Ücretsiz olanlar**. Eski `gz-chef-note gz-not--tasarruf` tek kutusu kullanılmaz.
 - Fiyat yazma kuralı (sabit ücret tam, ortaklıkla satılan band): bkz. Yazım.
 
 ## Ulaşım bölümü
@@ -110,7 +117,8 @@
 - Kartlara videoda geçmeyen yer ya da bilgi eklenmez; ne varsa o konur ("videoda geçmeyen şeyleri niye ekliyorsun").
 - Numaralı kartlar yalnız GİDİLEN yerlerdir. Gidilmeyen yerler tarafsız tonda, fotoğrafsız, numarasız kart olarak girer.
 - Biletli durakların hepsine ortaklık bağlantısı konur.
-- Ortaklık bağlantısı kartın içine değil kart grubunun başlığına (`gz-plan-baslik` içindeki `<small>`) konur, grubun ilk kartından hemen önce. Kart başına opsiyonel bağlantı `gz-kart-aff` sınıflı `<p>` içinde.
+- Grubun genel bağlantısı kart grubunun başlığına (`gz-plan-baslik` içindeki `<small>`) konur. Biletli durağın kendi bağlantısı (`gyg_şehir_yer`) kartın sonunda, `gz-kart-aff` sınıflı `<p>` içinde durur.
+- Kart listesi her zaman `gz-places-wrapper` iskeletidir; düz `<ul class="gbc-check">` listesi yer kartı yerine kullanılmaz.
 - Grup başlığı kalıbı: `<div class="gz-plan-baslik"><span class="gz-plan-no">GRUP ADI</span> üst satır <em>alt satır</em><small>paragraf + [gbc_aff id=x]metin[/gbc_aff]</small></div>`.
 - Kart gruplarının renkleri haritayla aynıdır: merkez turuncu, deniz mavi, yeme içme kırmızı.
 - Kartlarda "YouTube'da izle · dakika" çipi olur; videoyu sayfa içinde o dakikadan başlatır. Çipe basınca ekran kararmaz, video yeniden yüklenmeden o dakikaya gider. Bütün sayfalarda aynı standart.
@@ -184,7 +192,8 @@
 
 - **Hızlı Plan:** ortaklıklar sayfada kaybolmasın diye sağ sütunda uçak, otel ve temel yerlerin biletleri tek yerde durur; Hızlı Bilgiler'in hemen altına çıkar. Satır başlığı 37 karakteri geçmez. eSIM Hızlı Plan'a girmez.
 - **Sonra Nereye?** aynı ülkedeki gezi rehberlerini sağında oklu liste olarak gösterir. `trip_links` satırı "Başlık | URL | Açıklama | " (dört parça, sonuncusu boş), satırlar `\r\n`. `## Başlık | alt satır` satırı yeni ayrı kart açar. `trip_links` textarea'dır; içine dizi (ID listesi) yazılmaz.
-- **Yakın yerler** kartı ham HTML'dir (kısa kod çözülmez). Satır kalıbı: `<a class="gz-serie-row gz-yakin-row gbc-in" href="HEDEF" target="_blank" rel="sponsored nofollow noopener" data-aff="ID" data-prog="PROGRAM" data-post="POSTID"><span class="gz-serie-txt"><b class="gz-serie-ad">Ad</b><small>Tek cümle açıklama</small></span></a>`. Satıra elle ok ya da `gz-ok-dis` span'i konmaz; ok CSS'ten gelir. Kart rota mantığıyla kurulur (günübirlik turlar + şehirler arası rota bağlantıları). Aynı sayfadaki id tekrar kullanılmaz, yeni `_yan` id üretilir.
+- **Hızlı Plan: Gitmeden 6 Adım** (`gz_yakin_bas` + `gz_yakin_ust`=1 + `gz_yakin_yerler`): kısa kod çözülür (şablon `do_shortcode` uygular). Tam 6 satır `[gbc_aff id=X_yan stil=yan]N. Adım: Başlık | Açıklama[/gbc_aff]`, sıra: 1 uçak (Skyscanner) · 2 otel · 3 aktarma treni · 4 tur/bilet · 5 ikinci tur ya da yedek otel · 6 araç. Ayrıntı: skill.
+- **Yakın yerler** kartının eski ham HTML kalıbı (Hızlı Plan'a dönmemiş sayfalar için): Satır kalıbı: `<a class="gz-serie-row gz-yakin-row gbc-in" href="HEDEF" target="_blank" rel="sponsored nofollow noopener" data-aff="ID" data-prog="PROGRAM" data-post="POSTID"><span class="gz-serie-txt"><b class="gz-serie-ad">Ad</b><small>Tek cümle açıklama</small></span></a>`. Satıra elle ok ya da `gz-ok-dis` span'i konmaz; ok CSS'ten gelir. Kart rota mantığıyla kurulur (günübirlik turlar + şehirler arası rota bağlantıları). Aynı sayfadaki id tekrar kullanılmaz, yeni `_yan` id üretilir.
 
 ## SSS
 
@@ -206,9 +215,9 @@
 - Video adındaki bayrak emojisi SEO'ya zarar vermiyorsa kalabilir.
 - Sosyal paylaşım görseli: `rank_math_facebook_image` + `rank_math_facebook_image_id`; og:image canlıda doğrulanır.
 
-## Ölü alanlar (basılmaz — içerik ve ortaklık konmaz)
+## Ek bölümler (⑪b) ve ölü alanlar
 
-- `card_trip_list`, `card_shop_list`, `shop_tax_info`, `card_event_list`, `card_hist_list`, `card_photo_list`, `card_kid_list`, `card_night_list`, `card_trans_list` yalnız karakter sayılır, hiç basılmaz.
+- 15 Eylül 2026'dan beri basılır (şablon ⑪b): `card_trans_list` (`h2_trans_ici`), `card_trip_list` (`h2_trip`), `card_shop_list` + `shop_tax_info` (`h2_shop`), `card_hist_list` (`h2_hist`), `card_event_list` (`h2_event`, Noel pazarı), `card_kid_list` (`h2_kid`), `card_night_list` (`h2_night`), `card_photo_list` (`h2_photo`). Boşsa bölüm basılmaz. `card_trans_list` ve `card_safe_list` Gezi'de varsayılan BOŞ kalır.
 - `season_spring/summer/autumn/winter` uzun metinleri basılmaz.
 - `trans_moto_detail` basılmaz.
 - Basıldığı doğrulananlar: `card_places_list`, `card_food_list`, `card_stay_list`, `card_tips_list`, `trans_*_detail`, `hero_intro_text`.
@@ -232,7 +241,9 @@
 - Sayfa bitince baştan sona test edilir: hız, schema.org, H1/H2 yapısı, SEO, arama kapsamı yüzdesi. Önce analiz, sonra düzeltme.
 - Test-düzelt-test robot gibi yapılır, hiçbir madde kaçmaz.
 - Ortaklık doğrulama denetimi (altı kontrol), mobil 390 px taşma, İçindekiler ve yazar kutusu varlığı canlıda ölçülür.
-- Sayfa Denetimi (GBC skoru) çalıştırılır; hazır sayılmak için skor ≥70.
+- Sayfa Denetimi (GBC skoru) çalıştırılır. Hedef %100'e yakın, en az %90 (%70 yalnız alt sınır).
+  Yapılacaklar kutusundaki her madde düzeltilir, denetim yeniden çalıştırılır; madde atlanmaz
+  (1 Ekim 2026, Halil). Ayrıntı: gbc-gezi-rehberi skill'i, Ek A 5.16.
 
 ## Örnek sayfa: Sorrento (31232)
 
